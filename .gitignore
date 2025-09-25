@@ -1,0 +1,22 @@
+# Directories
+
+.build
+
+# Xcode
+
+*.xcodeproj
+*.xcworkspace
+
+# Swift Package Manager
+
+.derivedData
+. package
+*.resolved
+.build/
+
+# CocoaPods
+
+Pods/
+Podfile.lock
+
+# Carthage
