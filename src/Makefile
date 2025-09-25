@@ -40,6 +40,7 @@ clean:
 	@echo "🧹 Limpando arquivos gerados..."
 	@rm -rf $(PROJECT_NAME).xcodeproj
 	@rm -rf .build
+	@rm -rf Package.resolved
 	@echo "✅ Limpeza concluída."
 
 # Limpa e reconfigura o projeto do zero
