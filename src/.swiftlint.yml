@@ -9,10 +9,13 @@ analyzer_rules:
 included:
   - "*/*.swift"
   - "*/**/*.swift"
+  - "*/**/**/*.swift"
 excluded:
   - "*.xcodeproj"
   - ".git"
   - Pods
+  - .build
+  - .swiftpm
 allow_zero_lintable_files: false
 strict: false
 lenient: false

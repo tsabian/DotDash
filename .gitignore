@@ -1,22 +1,30 @@
 # Directories
-
 .build
 
 # Xcode
-
 *.xcodeproj
 *.xcworkspace
+.swiftpm
 
 # Swift Package Manager
-
 .derivedData
 . package
 *.resolved
 .build/
 
 # CocoaPods
-
 Pods/
 Podfile.lock
 
 # Carthage
+Carthage/Build/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+fastlane/readme.md
+
+# Firebase
+GoogleService-Info.plist

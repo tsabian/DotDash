@@ -22,7 +22,7 @@ SWIFTPACKAGE := swift package resolve
 all: setup
 
 # Configura o projeto (gera o projeto e resolve as dependências)
-setup: generate packages
+setup: generate
 	@echo "✅ Projeto configurado com sucesso."
 
 # Gera o .xcodeproj com xcodegen
@@ -30,17 +30,13 @@ generate:
 	@echo "📄 Gerando o projeto Xcode com xcodegen..."
 	@$(XCODEGEN)
 
-# Instala as dependências do Swift Package Manager
-packages:
-	@echo "📦 Resolvendo dependências do Swift Package..."
-	@$(SWIFTPACKAGE)
-
 # Limpa os arquivos gerados
 clean:
 	@echo "🧹 Limpando arquivos gerados..."
 	@rm -rf $(PROJECT_NAME).xcodeproj
+	@rm -rf $(PROJECT_NAME).xcworkspace
 	@rm -rf .build
-	@rm -rf Package.resolved
+	@rm -rf .swiftpm
 	@echo "✅ Limpeza concluída."
 
 # Limpa e reconfigura o projeto do zero
