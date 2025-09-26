@@ -3,7 +3,7 @@
 # Comandos disponíveis:
 #  - make (ou make setup): Configura o projeto (xcodegen + restore swiftpackage).
 #  - make generate: Gera o .xcodeproj com xcodegen.
-#  - make packages: Instala as dependências do Swiftpackage.
+#  - make variables: Resolve as variaveis do .env e substitui no arquivo project.yml.
 #  - make clean: Limpa os arquivos gerados.
 #  - make reset: Limpa e reconfigura o projeto do zero.
 #
@@ -29,6 +29,18 @@ setup: generate
 generate:
 	@echo "📄 Gerando o projeto Xcode com xcodegen..."
 	@$(XCODEGEN)
+
+# Substitui as variaveis do project.yml pelas do .env
+variables:
+	@echo "🔧 Substituindo variáveis do .env no project.yml..."
+	@if [ -f .env ]; then \
+	  export $(grep -v '^#' .env | xargs); \
+	  envsubst < project.yml > project_temp.yml; \
+	  mv project_temp.yml project.yml; \
+	  echo "✅ Variáveis substituídas com sucesso."; \
+	else \
+	  echo "⚠️ Arquivo .env não encontrado. Pulando substituição de variáveis."; \
+	fi
 
 # Limpa os arquivos gerados
 clean:

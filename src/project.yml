@@ -14,6 +14,10 @@ options:
   organizationIdentifier: br.com.bitxlabs
 
 packages:
+  Core: 
+    path: ./Core
+  Components:
+    path: ./Components
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk.git
     from: "12.3.0"
@@ -60,6 +64,8 @@ settings:
         SWIFT_COMPILATION_MODE: wholemodule
         SWIFT_OPTIMIZATION_LEVEL: -O
 
+## Application and Tests
+
 targets:
   DotDash:
     info:
@@ -79,6 +85,8 @@ targets:
     platform: iOS
     sources: DotDash
     dependencies:
+      - package: Core
+      - package: Components
       - package: Firebase
         product: FirebaseCore
       - package: Firebase
