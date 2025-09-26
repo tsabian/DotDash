@@ -27,7 +27,7 @@ pipeline: install_tools setup
 # Instala as ferramentas necessárias (swiftlint, swiftformat, xcodegen)
 install_tools:
 	@echo "🔧 Instalando ferramentas necessárias..."
-	@brew install swiftlint swiftformat xcodegen
+	@brew install swiftlint swiftformat xcodegen xcbeautify
 	@echo "✅ Ferramentas instaladas com sucesso."
 
 # Configura o projeto (gera o projeto e resolve as dependências)

@@ -19,10 +19,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Configurar GoogleService-Info.plist
+      run: |
+        echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" > ./DotDash/SupportingFiles/GoogleService-Info.plist
     - name: setup
       run: make pipeline
     - name: build
       run: xcodebuild -project DotDash.xcodeproj -scheme DotDash -sdk iphonesimulator
     - name: test
-      run: xcodebuild test -project DotDash.xcodeproj -scheme DotDash -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16e'
+      run: xcodebuild test-without-building -project DotDash.xcodeproj -scheme DotDash -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16e' | xcbeautify
       
