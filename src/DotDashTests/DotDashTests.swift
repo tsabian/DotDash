@@ -8,6 +8,5 @@
 import Testing
 
 struct DotDashTests {
-  @Test func example() async throws {
-  }
+  @Test func example() async throws {}
 }
