@@ -68,6 +68,8 @@ settings:
 
 targets:
   DotDash:
+    type: application
+    platform: iOS
     info:
       path: DotDash/SupportingFiles/Info.plist
       properties:
@@ -81,8 +83,6 @@ targets:
         NSNotificationUsageDescription: This app requires notification access to send you alerts and updates.
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
-    type: application
-    platform: iOS
     sources: DotDash
     dependencies:
       - package: Core
@@ -121,6 +121,8 @@ targets:
     sources: DotDashTests
     dependencies:
       - target: DotDash
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
     postBuildScripts:
       - path: Scripts/lint.sh
         name: "[Run] SwiftLint"
@@ -135,6 +137,8 @@ targets:
     sources: DotDashUITests
     dependencies:
       - target: DotDash
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
     postBuildScripts:
       - path: Scripts/lint.sh
         name: "[Run] SwiftLint"

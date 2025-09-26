@@ -21,6 +21,15 @@ SWIFTPACKAGE := swift package resolve
 # Target padrão (executado com 'make')
 all: setup
 
+# Pipeline completo: instala ferramentas e configura o projeto
+pipeline: install_tools setup
+
+# Instala as ferramentas necessárias (swiftlint, swiftformat, xcodegen)
+install_tools:
+	@echo "🔧 Instalando ferramentas necessárias..."
+	@brew install swiftlint swiftformat xcodegen
+	@echo "✅ Ferramentas instaladas com sucesso."
+
 # Configura o projeto (gera o projeto e resolve as dependências)
 setup: generate
 	@echo "✅ Projeto configurado com sucesso."

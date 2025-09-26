@@ -13,10 +13,16 @@ jobs:
   build:
 
     runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ./src
 
     steps:
     - uses: actions/checkout@v4
-    - name: Build
-      run: swift build -v
-    - name: Run tests
-      run: swift test -v
+    - name: setup
+      run: make pipeline
+    - name: build
+      run: xcodebuild -project DotDash.xcodeproj -scheme DotDash -sdk iphonesimulator
+    - name: test
+      run: xcodebuild test -project DotDash.xcodeproj -scheme DotDash -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16e'
+      
