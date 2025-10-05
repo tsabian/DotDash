@@ -1,0 +1,9 @@
+#include "base.xcconfig"
+
+PRODUCT_NAME = DotDash
+PRODUCT_BUNDLE_IDENTIFIER = br.com.bitxlabs.app.dotdash.ios
+DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
+ENABLE_NS_ASSERTIONS = NO
+VALIDATE_PRODUCT = YES
+MTL_ENABLE_DEBUG_INFO = NO
+SWIFT_OPTIMIZATION_LEVEL = -Owholemodule

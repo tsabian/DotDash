@@ -1,5 +1,7 @@
 # Directories
 .build
+*.lock
+*.env
 
 # Xcode
 *.xcodeproj
@@ -8,7 +10,7 @@
 
 # Swift Package Manager
 .derivedData
-. package
+.package
 *.resolved
 .build/
 
@@ -28,4 +30,9 @@ fastlane/readme.md
 
 # Firebase
 GoogleService-Info.plist
+GoogleService-Info-release.plist
+GoogleService-Info-debug.plist
 src/Baseline.json
+
+# vscode
+.vscode/
