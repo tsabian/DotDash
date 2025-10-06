@@ -13,11 +13,58 @@
 # Uncomment the line if you want fastlane to automatically update itself
 # update_fastlane
 
+require 'dotenv'
+
 default_platform(:ios)
+Dotenv.load('.env')
 
 platform :ios do
-  desc "Description of what the lane does"
-  lane :custom_lane do
-    # add actions here: https://docs.fastlane.tools/actions
+  desc "Runs tests"
+  lane :test do
+    run_tests(
+      scheme: "DotDashTests",
+      configuration: "Debug",
+      clean: true,
+      device: "iPhone 16e",
+    )
+  end
+
+  desc "Build the app for release"
+  lane :build do
+    build_app(
+      scheme: "DotDash",
+      configuration: "Release",
+      clean: true,
+      export_method: "app-store",
+      output_directory: "./build",
+      export_options: {
+        provisioningProfiles: {
+          "br.com.bitxlabs.app.dotdash.ios" => "dotdash-distribution"
+        }
+      }
+    )
+  end
+
+  desc "Sends to TestFlight"
+  lane :deploy do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_content: ENV["APP_STORE_CONNECT_KEY_CONTENT"],
+      is_key_content_base64: false
+    )
+    upload_to_testflight(
+      api_key: api_key,
+      distribute_external: false,
+      skip_waiting_for_build_processing: true,
+      ipa: "./build/DotDash.ipa"      
+    )
+  end
+
+  desc "Deploy to the App Store"
+  lane :beta do
+    test
+    build
+    deploy
   end
 end

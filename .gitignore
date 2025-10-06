@@ -2,6 +2,7 @@
 .build
 *.lock
 *.env
+**/build
 
 # Xcode
 *.xcodeproj
@@ -27,6 +28,19 @@ fastlane/Preview.html
 fastlane/screenshots
 fastlane/test_output
 fastlane/readme.md
+fastlane/profiles
+fastlane/**/profiles
+*.mobileprovision
+*.cer
+*.p12
+*.key
+src/.env
+src/DotDash.app.dSYM.zip
+*.ipa
+src/.env
+**/test_output
+src/fastlane/report.xml
+src/fastlane/README.md
 
 # Firebase
 GoogleService-Info.plist
@@ -36,3 +50,7 @@ src/Baseline.json
 
 # vscode
 .vscode/
+
+# Others
+.DS_Store
+*.p8
