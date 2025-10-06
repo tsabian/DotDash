@@ -96,6 +96,8 @@ platform :ios do
       xcargs: "-allowProvisioningUpdates CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO",
       clean: true
     )
+
+    UI.message("✅ Test results generated in #{output_dir}")
   end
 
   desc "Build without code signing for CI"
@@ -110,7 +112,6 @@ platform :ios do
       clean: true
     )
   end
-
 
   desc "Build the app for release"
   lane :build do
