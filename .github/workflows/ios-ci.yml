@@ -1,0 +1,137 @@
+name: iOS CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, closed]
+  workflow_dispatch:
+
+concurrency:
+  group: ios-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # 🧱 Build job - roda em todo commit
+  build_on_push:
+    name: 🧱 Build (commit)
+    runs-on: macos-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+
+      - name: Cache Ruby gems
+        uses: actions/cache@v4
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle config set path 'vendor/bundle'
+          bundle install --jobs 4 --retry 3
+
+      # Executa a lane de build do Fastlane (sem assinatura)
+      - name: Fastlane build
+        run: bundle exec fastlane ci_build
+
+  # ✅ Test job - roda sempre que um PR é aberto ou atualizado para main
+  test_on_pr:
+    name: ✅ Tests (pull request)
+    runs-on: macos-latest
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+
+      - name: Cache Ruby gems
+        uses: actions/cache@v4
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle config set path 'vendor/bundle'
+          bundle install --jobs 4 --retry 3
+
+      # ✅ Recria o GoogleService-Info.plist (Firebase)
+      - name: Create GoogleService-Info.plist from secrets
+        shell: bash
+        run: |
+          printf "%s" "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" > ./DotDash/SupportingFiles/GoogleService-Info.plist
+
+      - name: Run Fastlane tests
+        run: bundle exec fastlane test
+
+  # 🚀 Deploy job - executa automaticamente após merge em main
+  deploy_on_merge:
+    name: 🚀 Deploy to TestFlight (merge em main)
+    runs-on: macos-latest
+    if: >
+      github.event_name == 'pull_request' &&
+      github.event.action == 'closed' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+
+      - name: Cache Ruby gems
+        uses: actions/cache@v4
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle config set path 'vendor/bundle'
+          bundle install --jobs 4 --retry 3
+
+      # ✅ Recria o .env completo (com todas as variáveis)
+      - name: Create .env from secrets
+        shell: bash
+        run: |
+          echo "${{ secrets.ENV }}" > ./DotDash/.env
+
+      # ✅ Recria o GoogleService-Info.plist (Firebase)
+      - name: Create GoogleService-Info.plist from secrets
+        shell: bash
+        run: |
+          printf "%s" "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" > ./DotDash/SupportingFiles/GoogleService-Info.plist
+
+      # 🚀 Executa a lane de deploy do Fastlane (TestFlight)
+      - name: Deploy to TestFlight
+        run: bundle exec fastlane deploy
+
+      # 🧹 Limpa arquivos sensíveis no final
+      - name: Cleanup secrets files
+        if: always()
+        run: |
+          rm -f ./DotDash/.env
+          rm -f ./DotDash/SupportingFiles/GoogleService-Info.plist

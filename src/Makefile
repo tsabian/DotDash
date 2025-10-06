@@ -52,6 +52,7 @@ clean:
 	@rm -rf $(PROJECT_NAME).xcodeproj
 	@rm -rf $(PROJECT_NAME).xcworkspace
 	@rm -rf .build
+	@rm -rf build
 	@rm -rf .swiftpm
 	@echo "✅ Limpeza concluída."
 

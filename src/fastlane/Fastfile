@@ -29,6 +29,20 @@ platform :ios do
     )
   end
 
+  desc "Build without code signing for CI"
+  lane :ci_build do
+    clear_derived_data
+
+    xcodebuild(
+      scheme: "DotDash",
+      configuration: "Debug",
+      destination: "generic/platform=iOS",
+      xcargs: "-allowProvisioningUpdates CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO",
+      clean: true
+    )
+  end
+
+
   desc "Build the app for release"
   lane :build do
     build_app(
