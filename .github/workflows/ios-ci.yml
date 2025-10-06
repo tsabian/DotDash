@@ -47,6 +47,12 @@ jobs:
           bundle config set path 'vendor/bundle'
           bundle install --jobs 4 --retry 3
 
+      # ✅ Gera o projeto Xcode e resolve dependências
+      - name: Setup project (make setup)
+        run: |
+          make clean
+          make setup        
+
       # Executa a lane de build do Fastlane (sem assinatura)
       - name: Fastlane build
         run: bundle exec fastlane ci_build
@@ -84,8 +90,23 @@ jobs:
         run: |
           printf "%s" "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" > ./App/Sources/SupportingFiles/GoogleService-Info.plist
 
+      # ✅ Gera o projeto Xcode e resolve dependências
+      - name: Setup project (make setup)
+        run: |
+          make clean
+          make setup              
       - name: Run Fastlane tests
-        run: bundle exec fastlane test
+        run: bundle exec fastlane test --verbose
+
+    # 📦 Publica os resultados como artefatos
+      - name: Upload test results (JUnit + HTML + XCResult)
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            build/test_reports/report.junit
+            build/test_reports/report.html
+            build/test_reports/Test.xcresult
 
   # 🚀 Deploy job - executa automaticamente após merge em main
   deploy_on_merge:
@@ -129,6 +150,12 @@ jobs:
         shell: bash
         run: |
           printf "%s" "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" > ./App/Sources/SupportingFiles/GoogleService-Info.plist
+
+      # ✅ Gera o projeto Xcode e resolve dependências
+      - name: Setup project (make setup)
+        run: |
+          make clean
+          make setup              
 
       # 🚀 Executa a lane de deploy do Fastlane (TestFlight)
       - name: Deploy to TestFlight

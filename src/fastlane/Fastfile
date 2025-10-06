@@ -21,12 +21,31 @@ Dotenv.load('.env')
 platform :ios do
   desc "Runs tests"
   lane :test do
+    ENV["FASTLANE_DISABLE_INTERACTIVE_PROMPTS"] = "true"
+    ENV["FASTLANE_SKIP_UPDATE_CHECK"] = "true"
+    ENV["CI"] = "true"
+
+    # 🔄 captura automaticamente o primeiro simulador disponível
+    device = sh("xcrun simctl list devices available | grep -m1 'iPhone' | awk -F '(' '{print $1}'").strip
+    UI.message("📱 Using simulator: #{device}")
+
+    output_dir = "build/test_reports"
+
+    FileUtils.mkdir_p(output_dir) 
+
     run_tests(
       scheme: "DotDashTests",
       configuration: "Debug",
-      clean: true,
-      device: "iPhone 16e",
+      output_types: "junit,html",
+      prelaunch_simulator: true,
+      device: device,
+      output_directory: output_dir,
+      result_bundle: true,
+      suppress_xcode_output: false,
+      clean: true
     )
+
+    UI.message("✅ Test results generated in #{output_dir}")
   end
 
   desc "Build without code signing for CI"
@@ -41,7 +60,6 @@ platform :ios do
       clean: true
     )
   end
-
 
   desc "Build the app for release"
   lane :build do
