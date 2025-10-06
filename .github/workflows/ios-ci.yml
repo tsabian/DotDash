@@ -82,7 +82,7 @@ jobs:
       - name: Create GoogleService-Info.plist from secrets
         shell: bash
         run: |
-          printf "%s" "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" > ./DotDash/SupportingFiles/GoogleService-Info.plist
+          printf "%s" "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" > ./App/Sources/SupportingFiles/GoogleService-Info.plist
 
       - name: Run Fastlane tests
         run: bundle exec fastlane test
@@ -122,13 +122,13 @@ jobs:
       - name: Create .env from secrets
         shell: bash
         run: |
-          echo "${{ secrets.ENV }}" > ./DotDash/.env
+          echo "${{ secrets.ENV }}" > ./App/.env
 
       # ✅ Recria o GoogleService-Info.plist (Firebase)
       - name: Create GoogleService-Info.plist from secrets
         shell: bash
         run: |
-          printf "%s" "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" > ./DotDash/SupportingFiles/GoogleService-Info.plist
+          printf "%s" "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" > ./App/Sources/SupportingFiles/GoogleService-Info.plist
 
       # 🚀 Executa a lane de deploy do Fastlane (TestFlight)
       - name: Deploy to TestFlight
