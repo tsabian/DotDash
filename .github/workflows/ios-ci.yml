@@ -84,35 +84,35 @@ jobs:
           make clean
           make setup
 
-      - name: Create provisioning profile
-        shell: bash
-        run: |
-          set -eo pipefail
-          : "${APPLE_MOBILEPROVISION:?Faltou APPLE_MOBILEPROVISION}"
-          mkdir -p temp
-          PROFILE_RAW="temp/profile.mobileprovision"
+      # - name: Create provisioning profile
+      #   shell: bash
+      #   run: |
+      #     set -eo pipefail
+      #     : "${APPLE_MOBILEPROVISION:?Faltou APPLE_MOBILEPROVISION}"
+      #     mkdir -p temp
+      #     PROFILE_RAW="temp/profile.mobileprovision"
 
-          if ! printf "%s" "$APPLE_MOBILEPROVISION" | base64 -D > "$PROFILE_RAW" 2>/dev/null; then
-            printf "%s" "$APPLE_MOBILEPROVISION" | base64 --decode > "$PROFILE_RAW"
-          fi
+      #     if ! printf "%s" "$APPLE_MOBILEPROVISION" | base64 -D > "$PROFILE_RAW" 2>/dev/null; then
+      #       printf "%s" "$APPLE_MOBILEPROVISION" | base64 --decode > "$PROFILE_RAW"
+      #     fi
 
-          # valida e extrai metadados
-          if ! /usr/bin/security cms -D -i "$PROFILE_RAW" >/dev/null 2>&1; then
-            echo "❌ Provisioning profile inválido (verifique se o secret é o .mobileprovision em base64)."
-            exit 1
-          fi
+      #     # valida e extrai metadados
+      #     if ! /usr/bin/security cms -D -i "$PROFILE_RAW" >/dev/null 2>&1; then
+      #       echo "❌ Provisioning profile inválido (verifique se o secret é o .mobileprovision em base64)."
+      #       exit 1
+      #     fi
 
-          PROFILE_PLIST=$(/usr/bin/security cms -D -i "$PROFILE_RAW")
-          UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' /dev/stdin <<< "$PROFILE_PLIST")
-          NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' /dev/stdin <<< "$PROFILE_PLIST")
+      #     PROFILE_PLIST=$(/usr/bin/security cms -D -i "$PROFILE_RAW")
+      #     UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' /dev/stdin <<< "$PROFILE_PLIST")
+      #     NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' /dev/stdin <<< "$PROFILE_PLIST")
 
-          NEW_DIR="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
-          OLD_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
-          mkdir -p "$NEW_DIR" "$OLD_DIR"
-          cp "$PROFILE_RAW" "$NEW_DIR/$UUID.mobileprovision"
-          cp "$PROFILE_RAW" "$OLD_DIR/$UUID.mobileprovision"
+      #     NEW_DIR="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
+      #     OLD_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+      #     mkdir -p "$NEW_DIR" "$OLD_DIR"
+      #     cp "$PROFILE_RAW" "$NEW_DIR/$UUID.mobileprovision"
+      #     cp "$PROFILE_RAW" "$OLD_DIR/$UUID.mobileprovision"
 
-          echo "✅ Provisioning profile '$NAME' ($UUID) instalado."
+      #     echo "✅ Provisioning profile '$NAME' ($UUID) instalado."
 
       - name: Load Apple certificate (.p12) and configure keychain
         shell: bash
