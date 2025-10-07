@@ -31,6 +31,16 @@ jobs:
       github.event_name == 'pull_request' &&
       github.event.pull_request.merged == true &&
       github.event.pull_request.base.ref == 'main'
+    
+    # 🔐 Segredos injetados direto no ambiente
+    env:
+      APPLE_MOBILEPROVISION: ${{ secrets.APPLE_MOBILEPROVISION }}
+      APPLE_CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+      APPLE_CERTIFICATE_SECRET_WORD: ${{ secrets.APPLE_CERTIFICATE_SECRET_WORD }}
+      APP_STORE_CONNECT_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_KEY_CONTENT }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+      
     steps:
       - uses: actions/checkout@v4
         with:
@@ -56,17 +66,17 @@ jobs:
           bundle config set path 'vendor/bundle'
           bundle install --jobs 4 --retry 3 || bundle install
 
-      # ✅ Recria o .env completo (com todas as variáveis)
-      - name: Create .env from secrets
-        shell: bash
-        run: |
-          echo "${{ secrets.ENV }}" > .env
-
       # ✅ Recria o GoogleService-Info.plist (Firebase)
-      - name: Create GoogleService-Info.plist from secrets
+      - name: Create GoogleService-Info.plist (from B64 secret)
         shell: bash
         run: |
-          printf "%s" "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" > ./App/Sources/SupportingFiles/GoogleService-Info.plist
+          set -eo pipefail
+          : "${GOOGLE_SERVICE_INFO_PLIST:?Faltou GOOGLE_SERVICE_INFO_PLIST}"
+          mkdir -p ./App/Sources/SupportingFiles
+          if ! printf "%s" "$GOOGLE_SERVICE_INFO_PLIST" | base64 -D > ./App/Sources/SupportingFiles/GoogleService-Info.plist 2>/dev/null; then
+            printf "%s" "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode > ./App/Sources/SupportingFiles/GoogleService-Info.plist
+          fi
+          echo "✅ GoogleService-Info.plist restaurado."
 
       # ✅ Gera o projeto Xcode e resolve dependências
       - name: Setup project (make setup)
@@ -75,51 +85,73 @@ jobs:
           make setup
 
       - name: Create provisioning profile
+        shell: bash
         run: |
-            set -eo pipefail
-            source .env
-            mkdir -p temp
-            PROFILE_RAW="temp/profile.mobileprovision"
-            echo "$APPLE_MOBILEPROVISION" | base64 -d > "$PROFILE_RAW"
+          set -eo pipefail
+          : "${APPLE_MOBILEPROVISION:?Faltou APPLE_MOBILEPROVISION}"
+          mkdir -p temp
+          PROFILE_RAW="temp/profile.mobileprovision"
 
-            # Extrai UUID e Name do perfil
-            PROFILE_PLIST=$(/usr/bin/security cms -D -i "$PROFILE_RAW")
-            UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' /dev/stdin <<< "$PROFILE_PLIST")
-            NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' /dev/stdin <<< "$PROFILE_PLIST")
+          if ! printf "%s" "$APPLE_MOBILEPROVISION" | base64 -D > "$PROFILE_RAW" 2>/dev/null; then
+            printf "%s" "$APPLE_MOBILEPROVISION" | base64 --decode > "$PROFILE_RAW"
+          fi
 
-            # Cria diretórios (novo + legado por compatibilidade)
-            NEW_DIR="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
-            OLD_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
-            mkdir -p "$NEW_DIR" "$OLD_DIR"
+          # valida e extrai metadados
+          if ! /usr/bin/security cms -D -i "$PROFILE_RAW" >/dev/null 2>&1; then
+            echo "❌ Provisioning profile inválido (verifique se o secret é o .mobileprovision em base64)."
+            exit 1
+          fi
 
-            # Instala nos dois locais (Xcode 15/16 usa o novo)
-            cp "$PROFILE_RAW" "$NEW_DIR/$UUID.mobileprovision"
-            cp "$PROFILE_RAW" "$OLD_DIR/$UUID.mobileprovision"
-            
-            echo "✅ Provisioning profile '$NAME' ($UUID) instalado."
+          PROFILE_PLIST=$(/usr/bin/security cms -D -i "$PROFILE_RAW")
+          UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' /dev/stdin <<< "$PROFILE_PLIST")
+          NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' /dev/stdin <<< "$PROFILE_PLIST")
 
-      - name: Load Apple certificate
+          NEW_DIR="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
+          OLD_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$NEW_DIR" "$OLD_DIR"
+          cp "$PROFILE_RAW" "$NEW_DIR/$UUID.mobileprovision"
+          cp "$PROFILE_RAW" "$OLD_DIR/$UUID.mobileprovision"
+
+          echo "✅ Provisioning profile '$NAME' ($UUID) instalado."
+
+      - name: Load Apple certificate (.p12) and configure keychain
+        shell: bash
         run: |
-            source .env
-            mkdir -p temp
-            echo "$APPLE_CERTIFICATE_P12" | base64 -d > temp/cert.p12
-            security create-keychain -p "" build.keychain
-            security import temp/cert.p12 -k ~/Library/Keychains/build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-            echo "✅ Certificado Apple importado."
+          set -eo pipefail
+          : "${APPLE_CERTIFICATE_P12:?Faltou APPLE_CERTIFICATE_P12}"
+          : "${APPLE_CERTIFICATE_SECRET_WORD:?Faltou APPLE_CERTIFICATE_SECRET_WORD}"
+
+          mkdir -p temp
+          if ! printf "%s" "$APPLE_CERTIFICATE_P12" | base64 -D > temp/cert.p12 2>/dev/null; then
+            printf "%s" "$APPLE_CERTIFICATE_P12" | base64 --decode > temp/cert.p12
+          fi
+
+          # keychain dedicado ao build
+          security create-keychain -p "" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+          security import temp/cert.p12 -k ~/Library/Keychains/build.keychain -P "$APPLE_CERTIFICATE_SECRET_WORD" -T /usr/bin/codesign
+          # permite codesign/xcodebuild acessarem a chave
+          security set-key-partition-list -S apple-tool:,apple: -k "" ~/Library/Keychains/build.keychain
+
+          echo "✅ Certificado importado e keychain configurado."
+
+      - name: (Optional) Create App Store Connect key (.p8) for Fastlane
+        if: ${{ env.APP_STORE_CONNECT_KEY_CONTENT != '' && env.APP_STORE_CONNECT_ISSUER_ID != '' }}
+        shell: bash
+        run: |
+          set -eo pipefail
+          mkdir -p temp
+          KEY_PATH="temp/AuthKey_${APP_STORE_CONNECT_ISSUER_ID}.p8"
+          if ! printf "%s" "$APP_STORE_CONNECT_KEY_CONTENT" | base64 -D > "$KEY_PATH" 2>/dev/null; then
+            printf "%s" "$APP_STORE_CONNECT_KEY_CONTENT" | base64 --decode > "$KEY_PATH"
+          fi
+          echo "APP_STORE_CONNECT_KEY_PATH=$KEY_PATH" >> $GITHUB_ENV
+          echo "✅ AuthKey criado em $KEY_PATH"
 
       # 🧱 Executa a lane de build do Fastlane (com assinatura)
       - name: Fastlane release
         run: bundle exec fastlane build
-
-        # 🧹 Limpa arquivos sensíveis no final
-      - name: Cleanup secrets files, keychain and provisioning files
-        if: always()
-        run: |
-          rm -f .env
-          rm -f ./App/Sources/SupportingFiles/GoogleService-Info.plist
-          rm -rf temp
-          security delete-keychain build.keychain || true
-          echo "🧹 Keychain e perfis limpos."
 
       # 📦 Armazena os artefatos para o deploy
       - name: Upload build artifacts
@@ -129,3 +161,14 @@ jobs:
           path: |
             build/*.ipa
             build/*.dSYM.zip
+
+        # 🧹 Limpa arquivos sensíveis no final
+      - name: Cleanup secrets files, keychain and provisioning files
+        if: always()
+        shell: bash
+        run: |
+          set -eo pipefail
+          rm -f ./App/Sources/SupportingFiles/GoogleService-Info.plist || true
+          rm -rf temp || true
+          security delete-keychain build.keychain || true
+          echo "🧹 Keychain e arquivos temporários limpos."

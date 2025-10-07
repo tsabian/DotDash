@@ -12,6 +12,14 @@ jobs:
     name: 🚀 Deploy to TestFlight
     runs-on: macos-15
 
+    env:
+      APPLE_MOBILEPROVISION: ${{ secrets.APPLE_MOBILEPROVISION }}
+      APPLE_CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+      APPLE_CERTIFICATE_SECRET_WORD: ${{ secrets.APPLE_CERTIFICATE_SECRET_WORD }}
+      APP_STORE_CONNECT_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_KEY_CONTENT }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -40,19 +48,19 @@ jobs:
           bundle config set path 'vendor/bundle'
           bundle install --jobs 4 --retry 3
 
-      # ✅ Recria o .env completo (com todas as variáveis)
-      - name: Create .env from secrets
-        shell: bash
-        run: |
-          echo "${{ secrets.ENV }}" > .env
-
       # ✅ Recria o GoogleService-Info.plist (Firebase)
-      - name: Create GoogleService-Info.plist from secrets
+      - name: Create GoogleService-Info.plist (from B64 secret)
         shell: bash
         run: |
-          printf "%s" "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" > ./App/Sources/SupportingFiles/GoogleService-Info.plist
-
+          set -eo pipefail
+          : "${GOOGLE_SERVICE_INFO_PLIST:?Faltou GOOGLE_SERVICE_INFO_PLIST}"
+          mkdir -p ./App/Sources/SupportingFiles
+          if ! printf "%s" "$GOOGLE_SERVICE_INFO_PLIST" | base64 -D > ./App/Sources/SupportingFiles/GoogleService-Info.plist 2>/dev/null; then
+            printf "%s" "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode > ./App/Sources/SupportingFiles/GoogleService-Info.plist
+          fi
+          echo "✅ GoogleService-Info.plist restaurado."
       # 🚀 Faz o deploy (usa a lane Fastlane deploy_testflight)
+
       - name: Run Fastlane deploy_testflight
         run: bundle exec fastlane deploy
 
