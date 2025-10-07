@@ -1,0 +1,62 @@
+name: iOS Deploy to TestFlight
+
+on:
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: src
+
+jobs:
+  deploy_testflight:
+    name: 🚀 Deploy to TestFlight
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: build
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+
+      - name: Cache Ruby gems
+        uses: actions/cache@v4
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('src/**/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle config set path 'vendor/bundle'
+          bundle install --jobs 4 --retry 3
+
+      # ✅ Recria o .env completo (com todas as variáveis)
+      - name: Create .env from secrets
+        shell: bash
+        run: |
+          echo "${{ secrets.ENV }}" > .env
+
+      # ✅ Recria o GoogleService-Info.plist (Firebase)
+      - name: Create GoogleService-Info.plist from secrets
+        shell: bash
+        run: |
+          printf "%s" "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" > ./App/Sources/SupportingFiles/GoogleService-Info.plist
+
+      # 🚀 Faz o deploy (usa a lane Fastlane deploy_testflight)
+      - name: Run Fastlane deploy_testflight
+        run: bundle exec fastlane deploy
+
+      # 🧹 Limpeza opcional
+      - name: Cleanup
+        if: always()
+        run: rm -f .env

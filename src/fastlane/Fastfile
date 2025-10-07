@@ -79,18 +79,58 @@ platform :ios do
 
   desc "Sends to TestFlight"
   lane :deploy do
+
+    # 1️⃣ Configura a autenticação com a App Store Connect API
     api_key = app_store_connect_api_key(
       key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
       issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
       key_content: ENV["APP_STORE_CONNECT_KEY_CONTENT"],
       is_key_content_base64: false
     )
+
+    # 2️⃣ Faz o upload para o TestFlight
     upload_to_testflight(
       api_key: api_key,
       distribute_external: false,
       skip_waiting_for_build_processing: true,
-      ipa: "./build/DotDash.ipa"      
+      ipa: "./build/DotDash.ipa"
     )
+
+    # 3️⃣ Localiza o script de upload do Firebase (para SPM)
+    derived_data = File.expand_path("~/Library/Developer/Xcode/DerivedData")
+    upload_symbols_script = Dir.glob("#{derived_data}/**/firebase-ios-sdk/Crashlytics/upload-symbols").first
+
+    unless upload_symbols_script && File.exist?(upload_symbols_script)
+      UI.important("⚠️ Script upload-symbols não encontrado em DerivedData. Tentando caminho alternativo (local)...")
+      upload_symbols_script = Dir.glob("**/firebase-ios-sdk/Crashlytics/upload-symbols").first
+    end
+
+    unless upload_symbols_script && File.exist?(upload_symbols_script)
+      UI.user_error!("❌ Não foi possível localizar o script upload-symbols (Firebase Crashlytics via SPM).")
+    end
+
+    UI.message("📦 Uploading dSYM to Firebase Crashlytics using: #{upload_symbols_script}")
+
+    # 4️⃣ Localiza o .dSYM.zip na pasta de build
+    # localize first all dSYM.zip files in build directory
+    
+    dsym_files = Dir.glob("../build/*.dSYM.zip")
+    if dsym_files.empty?
+      UI.user_error!("❌ Nenhum arquivo dSYM.zip encontrado na pasta build/")
+    end
+
+    UI.message("📦 Uploading dSYM to Firebase Crashlytics...")
+
+    # 5️⃣ Faz o upload de todos os dSYM encontrados
+    dsym_files.each do |dsym|
+      sh("#{upload_symbols_script}",
+        "-gsp", "../App/Sources/SupportingFiles/GoogleService-Info.plist",
+        "-p", "ios",
+        dsym)
+    end
+
+    UI.success("✅ Todos os dSYMs foram enviados com sucesso ao Firebase Crashlytics!")
+
   end
 
   desc "Deploy to the App Store"

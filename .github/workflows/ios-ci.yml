@@ -1,124 +1,38 @@
-name: iOS CI/CD Pipeline
+name: iOS CI/CD Pipeline Release
 
 on:
-  push:
-    branches:
-      - '**'
   pull_request:
-    branches:
-      - main
-    types: [opened, synchronize, reopened, closed]
+    branches: [main]
+    types: [closed]
   workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+  
 
 # 🧭 define o diretório de trabalho global (todos os comandos rodam em src/)
 defaults:
   run:
     working-directory: src
 
-concurrency:
-  group: ios-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  # 🧱 Build job - roda em todo commit
-  build_on_push:
-    name: 🧱 Build (commit)
-    runs-on: macos-latest
-    if: github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-
-      - name: Cache Ruby gems
-        uses: actions/cache@v4
-        with:
-          path: vendor/bundle
-          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-gems-
-
-      - name: Install dependencies
-        run: |
-          gem install bundler
-          bundle config set path 'vendor/bundle'
-          bundle install --jobs 4 --retry 3
-
-      # ✅ Gera o projeto Xcode e resolve dependências
-      - name: Setup project (make setup)
-        run: |
-          make clean
-          make setup        
-
-      # Executa a lane de build do Fastlane (sem assinatura)
-      - name: Fastlane build
-        run: bundle exec fastlane ci_build
-
-  # ✅ Test job - roda sempre que um PR é aberto ou atualizado para main
-  test_on_pr:
-    name: ✅ Tests (pull request)
-    runs-on: macos-latest
-    if: github.event_name == 'pull_request' && github.event.action != 'closed'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-
-      - name: Cache Ruby gems
-        uses: actions/cache@v4
-        with:
-          path: vendor/bundle
-          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-gems-
-
-      - name: Install dependencies
-        run: |
-          gem install bundler
-          bundle config set path 'vendor/bundle'
-          bundle install --jobs 4 --retry 3
-
-      # ✅ Recria o GoogleService-Info.plist (Firebase)
-      - name: Create GoogleService-Info.plist from secrets
-        shell: bash
-        run: |
-          printf "%s" "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" > ./App/Sources/SupportingFiles/GoogleService-Info.plist
-
-      # ✅ Gera o projeto Xcode e resolve dependências
-      - name: Setup project (make setup)
-        run: |
-          make clean
-          make setup              
-      - name: Run Fastlane tests
-        run: bundle exec fastlane test --verbose
-
-    # 📦 Publica os resultados como artefatos
-      - name: Upload test results (JUnit + HTML + XCResult)
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: |
-            build/test_reports/report.junit
-            build/test_reports/report.html
-            build/test_reports/Test.xcresult
-
-  # 🚀 Deploy job - executa automaticamente após merge em main
-  deploy_on_merge:
-    name: 🚀 Deploy to TestFlight (merge em main)
+  # 🧱 Build release - roda somente após o merge na main
+  build_release:
+    name: 🧱 Build (release)
     runs-on: macos-latest
     if: >
       github.event_name == 'pull_request' &&
-      github.event.action == 'closed' &&
       github.event.pull_request.merged == true &&
       github.event.pull_request.base.ref == 'main'
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -157,24 +71,58 @@ jobs:
           make clean
           make setup
 
-      - name: Load Apple certificate and provisioning
+      - name: Create provisioning profile
+        run: |
+            set -euo pipefail
+            source .env
+            mkdir -p temp
+            PROFILE_RAW="temp/profile.mobileprovision"
+            echo "$APPLE_MOBILEPROVISION" | base64 -d > "$PROFILE_RAW"
+
+            # Extrai UUID e Name do perfil
+            PROFILE_PLIST=$(/usr/bin/security cms -D -i "$PROFILE_RAW")
+            UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' /dev/stdin <<< "$PROFILE_PLIST")
+            NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' /dev/stdin <<< "$PROFILE_PLIST")
+
+            # Cria diretórios (novo + legado por compatibilidade)
+            NEW_DIR="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
+            OLD_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+            mkdir -p "$NEW_DIR" "$OLD_DIR"
+
+            # Instala nos dois locais (Xcode 15/16 usa o novo)
+            cp "$PROFILE_RAW" "$NEW_DIR/$UUID.mobileprovision"
+            cp "$PROFILE_RAW" "$OLD_DIR/$UUID.mobileprovision"
+            
+            echo "✅ Provisioning profile '$NAME' ($UUID) instalado."
+
+      - name: Load Apple certificate
         run: |
             source .env
-            echo "$APPLE_CERTIFICATE_P12" | base64 --decode > $RUNNER_TEMP/cert.p12
-            echo "$APPLE_MOBILEPROVISION" | base64 --decode > $RUNNER_TEMP/profile.mobileprovision
+            mkdir -p temp
+            echo "$APPLE_CERTIFICATE_P12" | base64 -d > temp/cert.p12
             security create-keychain -p "" build.keychain
-            security import $RUNNER_TEMP/cert.p12 -k ~/Library/Keychains/build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-            mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-            cp $RUNNER_TEMP/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+            security import temp/cert.p12 -k ~/Library/Keychains/build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+            
+            echo "✅ Certificado Apple importado."
 
-      # 🚀 Executa a lane de deploy do Fastlane (TestFlight)
-      - name: Deploy to TestFlight
-        run: bundle exec fastlane deploy
+      # 🧱 Executa a lane de build do Fastlane (com assinatura)
+      - name: Fastlane release
+        run: bundle exec fastlane build
 
-      # 🧹 Limpa arquivos sensíveis no final
+        # 🧹 Limpa arquivos sensíveis no final
       - name: Cleanup secrets files, keychain and provisioning files
         if: always()
         run: |
-          rm -f ./DotDash/.env
-          rm -f ./DotDash/SupportingFiles/GoogleService-Info.plist
+          rm -f .env
+          rm -f ./App/Sources/SupportingFiles/GoogleService-Info.plist
+          rm -rf temp
           echo "🧹 Keychain e perfis limpos."
+
+      # 📦 Armazena os artefatos para o deploy
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            build/*.ipa
+            build/*.dSYM.zip
