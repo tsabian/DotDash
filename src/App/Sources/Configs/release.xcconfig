@@ -1,5 +1,8 @@
 #include "base.xcconfig"
 
+CODE_SIGN_STYLE = Manual
+CODE_SIGN_IDENTITY[sdk=iphoneos*] = Apple Distribution
+PROVISIONING_PROFILE_SPECIFIER = $(APP_STORE_PROFILE_NAME)
 PRODUCT_NAME = DotDash
 PRODUCT_BUNDLE_IDENTIFIER = br.com.bitxlabs.app.dotdash.ios
 DEBUG_INFORMATION_FORMAT = dwarf-with-dsym

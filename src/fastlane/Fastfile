@@ -63,16 +63,27 @@ platform :ios do
 
   desc "Build the app for release"
   lane :build do
+    team_id = ENV["APPLE_TEAM_ID"]
+    profile_name = "dotdash-distribution"
+
+    install_profile_from_env!
+
+    xcargs = []
+    xcargs << "DEVELOPMENT_TEAM=#{team_id}" if team_id
+    xcargs << "CODE_SIGN_STYLE=Manual"
+    xcargs << "PROVISIONING_PROFILE_SPECIFIER=#{profile_name}"
+
     build_app(
       scheme: "DotDash",
       configuration: "Release",
       clean: true,
+      xcargs: xcargs.join(" "),
       export_method: "app-store",
       output_directory: "./build",
       export_options: {
         provisioningProfiles: {
-          "br.com.bitxlabs.app.dotdash.ios" => "dotdash-distribution"
-        }
+          "br.com.bitxlabs.app.dotdash.ios" => profile_name
+        },
       }
     )
   end
@@ -147,5 +158,58 @@ platform :ios do
     test
     build
     deploy
+  end
+
+  # 
+  # Helpers
+  #
+
+  def install_profile_from_env!(env_keys: ["APPLE_MOBILEPROVISION_B64", "APPLE_MOBILEPROVISION"])
+    # 1) Captura o conteúdo (base64). Tenta várias chaves para compat local/CI.
+    b64 = env_keys.map { |k| ENV[k].to_s.strip }.find { |v| !v.empty? }
+    UI.user_error!("❌ Não encontrei nenhuma das variáveis #{env_keys.join(', ')} com o base64 do .mobileprovision") if b64.nil? || b64.empty?
+
+    # 2) Decodifica para arquivo temporário
+    tmp_dir   = Dir.mktmpdir("provprofile")
+    raw_path  = File.join(tmp_dir, "profile.mobileprovision")
+    plist_path = File.join(tmp_dir, "profile.plist")
+
+    begin
+      # tenta strict; se falhar, tenta decode64 tolerante (com quebras)
+      File.binwrite(raw_path, Base64.strict_decode64(b64))
+    rescue
+      File.binwrite(raw_path, Base64.decode64(b64))
+    end
+
+    # 3) Extrai o plist com o 'security' para um ARQUIVO (-o)
+    #    Se falhar, o exit status != 0 e/ou o arquivo ficará vazio.
+    begin
+      sh("/usr/bin/security cms -D -i #{Shellwords.escape(raw_path)} -o #{Shellwords.escape(plist_path)}")
+    rescue => e
+      # Ajuda de diagnóstico: mostra primeiros bytes do arquivo bruto
+      head_bytes = File.exist?(raw_path) ? File.binread(raw_path, 16).unpack('H*').first : "sem arquivo"
+      UI.user_error!("❌ Falha no 'security cms -D': #{e}\nHint: verifique se o secret é o .mobileprovision em base64.\nRaw head=#{head_bytes}")
+    end
+
+    UI.user_error!("❌ Plist não foi gerado (security cms falhou silenciosamente)") unless File.exist?(plist_path) && File.size?(plist_path)
+
+    # 4) Lê metadados diretamente do arquivo (sem stdin)
+    name = sh("/usr/libexec/PlistBuddy -c 'Print :Name' #{Shellwords.escape(plist_path)}", print_command: false).strip
+    uuid = sh("/usr/libexec/PlistBuddy -c 'Print :UUID' #{Shellwords.escape(plist_path)}", print_command: false).strip
+
+    # 5) Instala nos diretórios esperados pelo Xcode 15/16 (e legado)
+    new_dir = File.expand_path("~/Library/Developer/Xcode/UserData/Provisioning Profiles")
+    old_dir = File.expand_path("~/Library/MobileDevice/Provisioning Profiles")
+    FileUtils.mkdir_p(new_dir)
+    FileUtils.mkdir_p(old_dir)
+    FileUtils.cp(raw_path, File.join(new_dir, "#{uuid}.mobileprovision"))
+    FileUtils.cp(raw_path, File.join(old_dir, "#{uuid}.mobileprovision"))
+
+    # 6) Expõe o Name para ser usado como SPECIFIER
+    ENV["APP_STORE_PROFILE_NAME"] = name
+    Actions.lane_context[:APP_STORE_PROFILE_NAME] = name
+
+    UI.message("✅ Provisioning profile instalado: #{name} (#{uuid})")
+    { name: name, uuid: uuid, raw: raw_path, plist: plist_path }
   end
 end
