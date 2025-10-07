@@ -1,120 +1,38 @@
-name: iOS CI/CD Pipeline
+name: iOS CI/CD Pipeline Release
 
 on:
-  push:
-    branches:
-      - '**'
   pull_request:
-    branches:
-      - main
-    types: [opened, synchronize, reopened, closed]
+    branches: [main]
+    types: [closed]
   workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+  
 
 # 🧭 define o diretório de trabalho global (todos os comandos rodam em src/)
 defaults:
   run:
     working-directory: src
 
-concurrency:
-  group: ios-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  # 🧱 Build job - roda em todo commit
-  build_on_push:
-    name: 🧱 Build (commit)
-    runs-on: macos-latest
-    if: github.event_name == 'push' && github.ref != 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-
-      - name: Cache Ruby gems
-        uses: actions/cache@v4
-        with:
-          path: vendor/bundle
-          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-gems-
-
-      - name: Install dependencies
-        run: |
-          gem install bundler
-          bundle config set path 'vendor/bundle'
-          bundle install --jobs 4 --retry 3
-
-      # ✅ Gera o projeto Xcode e resolve dependências
-      - name: Setup project (make setup)
-        run: |
-          make clean
-          make setup        
-
-      # Executa a lane de build do Fastlane (sem assinatura)
-      - name: Fastlane build
-        run: bundle exec fastlane ci_build
-
-  # ✅ Test job - roda sempre que um PR é aberto ou atualizado para main
-  test_on_pr:
-    name: ✅ Tests (pull request)
-    runs-on: macos-latest
-    if: github.event_name == 'pull_request' && github.event.action != 'closed'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-
-      - name: Cache Ruby gems
-        uses: actions/cache@v4
-        with:
-          path: vendor/bundle
-          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-gems-
-
-      - name: Install dependencies
-        run: |
-          gem install bundler
-          bundle config set path 'vendor/bundle'
-          bundle install --jobs 4 --retry 3
-
-      # ✅ Recria o GoogleService-Info.plist (Firebase)
-      - name: Create GoogleService-Info.plist from secrets
-        shell: bash
-        run: |
-          printf "%s" "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" > ./App/Sources/SupportingFiles/GoogleService-Info.plist
-
-      # ✅ Gera o projeto Xcode e resolve dependências
-      - name: Setup project (make setup)
-        run: |
-          make clean
-          make setup              
-      - name: Run Fastlane tests
-        run: bundle exec fastlane test --verbose
-
-    # 📦 Publica os resultados como artefatos
-      - name: Upload test results (JUnit + HTML + XCResult)
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: |
-            build/test_reports/report.junit
-            build/test_reports/report.html
-            build/test_reports/Test.xcresult
-
   # 🧱 Build release - roda somente após o merge na main
   build_release:
     name: 🧱 Build (release)
     runs-on: macos-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: >
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'main'
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
