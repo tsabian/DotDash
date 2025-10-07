@@ -143,7 +143,7 @@ jobs:
       - name: Create .env from secrets
         shell: bash
         run: |
-          echo "${{ secrets.ENV }}" > ./App/.env
+          echo "${{ secrets.ENV }}" > .env
 
       # ✅ Recria o GoogleService-Info.plist (Firebase)
       - name: Create GoogleService-Info.plist from secrets
@@ -155,15 +155,26 @@ jobs:
       - name: Setup project (make setup)
         run: |
           make clean
-          make setup              
+          make setup
+
+      - name: Load Apple certificate and provisioning
+        run: |
+            source .env
+            echo "$APPLE_CERTIFICATE_P12" | base64 --decode > $RUNNER_TEMP/cert.p12
+            echo "$APPLE_MOBILEPROVISION" | base64 --decode > $RUNNER_TEMP/profile.mobileprovision
+            security create-keychain -p "" build.keychain
+            security import $RUNNER_TEMP/cert.p12 -k ~/Library/Keychains/build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+            mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+            cp $RUNNER_TEMP/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
 
       # 🚀 Executa a lane de deploy do Fastlane (TestFlight)
       - name: Deploy to TestFlight
         run: bundle exec fastlane deploy
 
       # 🧹 Limpa arquivos sensíveis no final
-      - name: Cleanup secrets files
+      - name: Cleanup secrets files, keychain and provisioning files
         if: always()
         run: |
           rm -f ./DotDash/.env
           rm -f ./DotDash/SupportingFiles/GoogleService-Info.plist
+          echo "🧹 Keychain e perfis limpos."
