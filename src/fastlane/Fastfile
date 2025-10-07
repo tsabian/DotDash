@@ -1,0 +1,102 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+require 'dotenv'
+
+default_platform(:ios)
+Dotenv.load('.env')
+
+platform :ios do
+  desc "Runs tests"
+  lane :test do
+    ENV["FASTLANE_DISABLE_INTERACTIVE_PROMPTS"] = "true"
+    ENV["FASTLANE_SKIP_UPDATE_CHECK"] = "true"
+    ENV["CI"] = "true"
+
+    # 🔄 captura automaticamente o primeiro simulador disponível
+    device = sh("xcrun simctl list devices available | grep -m1 'iPhone' | awk -F '(' '{print $1}'").strip
+    UI.message("📱 Using simulator: #{device}")
+
+    output_dir = "build/test_reports"
+
+    FileUtils.mkdir_p(output_dir) 
+
+    run_tests(
+      scheme: "DotDashTests",
+      configuration: "Debug",
+      output_types: "junit,html",
+      prelaunch_simulator: true,
+      device: device,
+      output_directory: output_dir,
+      result_bundle: true,
+      suppress_xcode_output: false,
+      clean: true
+    )
+
+    UI.message("✅ Test results generated in #{output_dir}")
+  end
+
+  desc "Build without code signing for CI"
+  lane :ci_build do
+    clear_derived_data
+
+    xcodebuild(
+      scheme: "DotDash",
+      configuration: "Debug",
+      destination: "generic/platform=iOS",
+      xcargs: "-allowProvisioningUpdates CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO",
+      clean: true
+    )
+  end
+
+  desc "Build the app for release"
+  lane :build do
+    build_app(
+      scheme: "DotDash",
+      configuration: "Release",
+      clean: true,
+      export_method: "app-store",
+      output_directory: "./build",
+      export_options: {
+        provisioningProfiles: {
+          "br.com.bitxlabs.app.dotdash.ios" => "dotdash-distribution"
+        }
+      }
+    )
+  end
+
+  desc "Sends to TestFlight"
+  lane :deploy do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_content: ENV["APP_STORE_CONNECT_KEY_CONTENT"],
+      is_key_content_base64: false
+    )
+    upload_to_testflight(
+      api_key: api_key,
+      distribute_external: false,
+      skip_waiting_for_build_processing: true,
+      ipa: "./build/DotDash.ipa"      
+    )
+  end
+
+  desc "Deploy to the App Store"
+  lane :beta do
+    test
+    build
+    deploy
+  end
+end
