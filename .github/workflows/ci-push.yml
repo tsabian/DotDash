@@ -16,7 +16,7 @@ jobs:
 # 🧱 Build job - roda em todo commit
   build_on_push:
     name: 🧱 Build (commit)
-    runs-on: macos-latest
+    runs-on: macos-15
     if: github.event_name == 'push' && github.ref != 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4

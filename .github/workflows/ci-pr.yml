@@ -18,7 +18,7 @@ jobs:
   # ✅ Test job - roda sempre que um PR é aberto ou atualizado para main
   test_on_pr:
     name: ✅ Tests (pull request)
-    runs-on: macos-latest
+    runs-on: macos-15
     if: github.event_name == 'pull_request' && github.event.action != 'closed'
     steps:
       - uses: actions/checkout@v4
@@ -54,7 +54,7 @@ jobs:
           make clean
           make setup              
       - name: Run Fastlane tests
-        run: bundle exec fastlane test --verbose
+        run: bundle exec fastlane test
 
     # 📦 Publica os resultados como artefatos
       - name: Upload test results (JUnit + HTML + XCResult)
