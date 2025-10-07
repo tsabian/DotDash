@@ -4,7 +4,10 @@ on:
   pull_request:
     branches: [main]
     types: [closed]
+  push:
+    branches: [main]
   workflow_dispatch:
+
 
 permissions:
   contents: write
@@ -23,7 +26,7 @@ jobs:
   # 🧱 Build release - roda somente após o merge na main
   build_release:
     name: 🧱 Build (release)
-    runs-on: macos-latest
+    runs-on: macos-15
     if: >
       github.event_name == 'pull_request' &&
       github.event.pull_request.merged == true &&
@@ -51,7 +54,7 @@ jobs:
         run: |
           gem install bundler
           bundle config set path 'vendor/bundle'
-          bundle install --jobs 4 --retry 3
+          bundle install --jobs 4 --retry 3 || bundle install
 
       # ✅ Recria o .env completo (com todas as variáveis)
       - name: Create .env from secrets
@@ -73,7 +76,7 @@ jobs:
 
       - name: Create provisioning profile
         run: |
-            set -euo pipefail
+            set -eo pipefail
             source .env
             mkdir -p temp
             PROFILE_RAW="temp/profile.mobileprovision"
@@ -102,7 +105,6 @@ jobs:
             echo "$APPLE_CERTIFICATE_P12" | base64 -d > temp/cert.p12
             security create-keychain -p "" build.keychain
             security import temp/cert.p12 -k ~/Library/Keychains/build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-            
             echo "✅ Certificado Apple importado."
 
       # 🧱 Executa a lane de build do Fastlane (com assinatura)
@@ -116,6 +118,7 @@ jobs:
           rm -f .env
           rm -f ./App/Sources/SupportingFiles/GoogleService-Info.plist
           rm -rf temp
+          security delete-keychain build.keychain || true
           echo "🧹 Keychain e perfis limpos."
 
       # 📦 Armazena os artefatos para o deploy
