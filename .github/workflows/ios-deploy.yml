@@ -12,14 +12,12 @@ jobs:
     name: 🚀 Deploy to TestFlight
     runs-on: macos-15
 
+    # 🔐 Segredos injetados direto no ambiente
     env:
-      APPLE_MOBILEPROVISION: ${{ secrets.APPLE_MOBILEPROVISION }}
-      APPLE_CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
-      APPLE_CERTIFICATE_SECRET_WORD: ${{ secrets.APPLE_CERTIFICATE_SECRET_WORD }}
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
       APP_STORE_CONNECT_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_KEY_CONTENT }}
       APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-      GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
-
+      
     steps:
       - uses: actions/checkout@v4
 
