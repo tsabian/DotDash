@@ -1,13 +1,7 @@
-name: iOS CI/CD Pipeline Release
+name: iOS Release
 
 on:
-  pull_request:
-    branches: [main]
-    types: [closed]
-  push:
-    branches: [main]
   workflow_dispatch:
-
 
 permissions:
   contents: write
@@ -27,10 +21,7 @@ jobs:
   build_release:
     name: 🧱 Build (release)
     runs-on: macos-15
-    if: >
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.merged == true &&
-      github.event.pull_request.base.ref == 'main'
+    if: github.event_name == 'workflow_dispatch'
     
     # 🔐 Segredos injetados direto no ambiente
     env:
@@ -40,11 +31,11 @@ jobs:
       APP_STORE_CONNECT_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_KEY_CONTENT }}
       APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
       GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
-      
+
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          ref: 'main'
           fetch-depth: 0
 
       - name: Set up Ruby
@@ -160,3 +151,63 @@ jobs:
           security delete-keychain build.keychain || true
           make clean
           echo "🧹 Keychain e arquivos temporários limpos."
+
+  deploy_testflight:
+    name: 🚀 Deploy to TestFlight
+    runs-on: macos-15
+    needs: build_release
+
+    # 🔐 Segredos injetados direto no ambiente
+    env:
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_KEY_CONTENT }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: build
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+
+      - name: Cache Ruby gems
+        uses: actions/cache@v4
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('src/**/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle config set path 'vendor/bundle'
+          bundle install --jobs 4 --retry 3
+
+      # ✅ Recria o GoogleService-Info.plist (Firebase)
+      - name: Create GoogleService-Info.plist (from B64 secret)
+        shell: bash
+        run: |
+          set -eo pipefail
+          : "${GOOGLE_SERVICE_INFO_PLIST:?Faltou GOOGLE_SERVICE_INFO_PLIST}"
+          mkdir -p ./App/Sources/SupportingFiles
+          if ! printf "%s" "$GOOGLE_SERVICE_INFO_PLIST" | base64 -D > ./App/Sources/SupportingFiles/GoogleService-Info.plist 2>/dev/null; then
+            printf "%s" "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode > ./App/Sources/SupportingFiles/GoogleService-Info.plist
+          fi
+          echo "✅ GoogleService-Info.plist restaurado."
+
+      # 🚀 Faz o deploy (usa a lane Fastlane deploy_testflight)
+      - name: Run Fastlane deploy_testflight
+        run: bundle exec fastlane deploy
+
+      # 🧹 Limpeza opcional
+      - name: Cleanup
+        if: always()
+        run: make clean
