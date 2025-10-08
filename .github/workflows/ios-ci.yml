@@ -84,36 +84,6 @@ jobs:
           make clean
           make setup
 
-      # - name: Create provisioning profile
-      #   shell: bash
-      #   run: |
-      #     set -eo pipefail
-      #     : "${APPLE_MOBILEPROVISION:?Faltou APPLE_MOBILEPROVISION}"
-      #     mkdir -p temp
-      #     PROFILE_RAW="temp/profile.mobileprovision"
-
-      #     if ! printf "%s" "$APPLE_MOBILEPROVISION" | base64 -D > "$PROFILE_RAW" 2>/dev/null; then
-      #       printf "%s" "$APPLE_MOBILEPROVISION" | base64 --decode > "$PROFILE_RAW"
-      #     fi
-
-      #     # valida e extrai metadados
-      #     if ! /usr/bin/security cms -D -i "$PROFILE_RAW" >/dev/null 2>&1; then
-      #       echo "❌ Provisioning profile inválido (verifique se o secret é o .mobileprovision em base64)."
-      #       exit 1
-      #     fi
-
-      #     PROFILE_PLIST=$(/usr/bin/security cms -D -i "$PROFILE_RAW")
-      #     UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' /dev/stdin <<< "$PROFILE_PLIST")
-      #     NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' /dev/stdin <<< "$PROFILE_PLIST")
-
-      #     NEW_DIR="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
-      #     OLD_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
-      #     mkdir -p "$NEW_DIR" "$OLD_DIR"
-      #     cp "$PROFILE_RAW" "$NEW_DIR/$UUID.mobileprovision"
-      #     cp "$PROFILE_RAW" "$OLD_DIR/$UUID.mobileprovision"
-
-      #     echo "✅ Provisioning profile '$NAME' ($UUID) instalado."
-
       - name: Load Apple certificate (.p12) and configure keychain
         shell: bash
         run: |
@@ -153,14 +123,31 @@ jobs:
       - name: Fastlane release
         run: bundle exec fastlane build
 
-      # 📦 Armazena os artefatos para o deploy
+      # 💻 Debug: show where artifacts are (helps if upload fails)
+      - name: "Debug list build artifacts"
+        shell: bash
+        run: |
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+          echo "Looking for build directories..."
+          if [ -d "$GITHUB_WORKSPACE/src/build" ]; then
+            echo "Found src/build:"
+            ls -la "$GITHUB_WORKSPACE/src/build" || true
+          fi
+          if [ -d "$GITHUB_WORKSPACE/build" ]; then
+            echo "Found build:"
+            ls -la "$GITHUB_WORKSPACE/build" || true
+          fi
+          echo "Also searching recursively for .ipa and dSYM files:" 
+          find "$GITHUB_WORKSPACE" -type f \( -name "*.ipa" -o -name "*.dSYM.zip" \) -maxdepth 4 -print || true
+
+      # 📦 Armazena os artefatos para o deploy (paths are relative to $GITHUB_WORKSPACE)
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: |
-            build/*.ipa
-            build/*.dSYM.zip
+            src/build/*.ipa
+            src/build/*.dSYM.zip
 
         # 🧹 Limpa arquivos sensíveis no final
       - name: Cleanup secrets files, keychain and provisioning files
@@ -171,4 +158,5 @@ jobs:
           rm -f ./App/Sources/SupportingFiles/GoogleService-Info.plist || true
           rm -rf temp || true
           security delete-keychain build.keychain || true
+          make clean
           echo "🧹 Keychain e arquivos temporários limpos."
