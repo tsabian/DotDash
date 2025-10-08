@@ -59,12 +59,12 @@ jobs:
             printf "%s" "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode > ./App/Sources/SupportingFiles/GoogleService-Info.plist
           fi
           echo "✅ GoogleService-Info.plist restaurado."
-      # 🚀 Faz o deploy (usa a lane Fastlane deploy_testflight)
 
+      # 🚀 Faz o deploy (usa a lane Fastlane deploy_testflight)
       - name: Run Fastlane deploy_testflight
         run: bundle exec fastlane deploy
 
       # 🧹 Limpeza opcional
       - name: Cleanup
         if: always()
-        run: rm -f .env
+        run: make clean

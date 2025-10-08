@@ -20,6 +20,10 @@ jobs:
     name: ✅ Tests (pull request)
     runs-on: macos-15
     if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    # 🔐 Segredos injetados direto no ambiente
+    env:
+      GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -43,10 +47,16 @@ jobs:
           bundle install --jobs 4 --retry 3
 
       # ✅ Recria o GoogleService-Info.plist (Firebase)
-      - name: Create GoogleService-Info.plist from secrets
+      - name: Create GoogleService-Info.plist (from B64 secret)
         shell: bash
         run: |
-          printf "%s" "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" > ./App/Sources/SupportingFiles/GoogleService-Info.plist
+          set -eo pipefail
+          : "${GOOGLE_SERVICE_INFO_PLIST:?Faltou GOOGLE_SERVICE_INFO_PLIST}"
+          mkdir -p ./App/Sources/SupportingFiles
+          if ! printf "%s" "$GOOGLE_SERVICE_INFO_PLIST" | base64 -D > ./App/Sources/SupportingFiles/GoogleService-Info.plist 2>/dev/null; then
+            printf "%s" "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode > ./App/Sources/SupportingFiles/GoogleService-Info.plist
+          fi
+          echo "✅ GoogleService-Info.plist restaurado."
 
       # ✅ Gera o projeto Xcode e resolve dependências
       - name: Setup project (make setup)
