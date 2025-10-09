@@ -68,14 +68,14 @@ jobs:
           root_dir="build/test_reports"
           echo "📊 Gerando relatório HTML dos testes..."
           echo "🔎 Searching for .xcresult files in build/test_reports..."
-          find $root_dir -type d -name "*.xcresult" -print0 | 
+          find "$root_dir" -type d -name "*.xcresult" -print0 | 
           while IFS= read -r -d '' file; do
               echo "Found .xcresult at $file";
               if command -v xchtmlreport >/dev/null 2>&1; then
                   filenamewithoutextension=$(basename "$file" .xcresult)
                   path="$root_dir/$filenamewithoutextension"
                   echo "Generating report for $filenamewithoutextension"
-                  mkdir -p $path
+                  mkdir -p "$path"
                   xchtmlreport "$file" --output "$path"
                   echo "✅ Relatório HTML gerado em $path"
               else
