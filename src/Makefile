@@ -1,15 +1,4 @@
 # Makefile para o projeto DotDash
-#
-# Comandos disponíveis:
-#  - make (ou make setup): Configura o projeto (xcodegen + restore swiftpackage).
-#  - make generate: Gera o .xcodeproj com xcodegen.
-#  - make variables: Resolve as variaveis do .env e substitui no arquivo project.yml.
-#  - make clean: Limpa os arquivos gerados.
-#  - make reset: Limpa e reconfigura o projeto do zero.
-#
-# Autor: Gemini Code Assist
-# Data: 2024-06-27	
-
 # Variáveis
 PROJECT_NAME := DotDash
 XCODEGEN := xcodegen
@@ -24,7 +13,7 @@ all: generate permissions open
 # Instala as ferramentas necessárias (swiftlint, swiftformat, xcodegen)
 install_tools:
 	@echo "🔧 Instalando ferramentas necessárias..."
-	@brew install swiftlint swiftformat xcodegen xcbeautify
+	@brew install swiftlint swiftformat xcodegen xcbeautify xctesthtmlreport
 	@echo "✅ Ferramentas instaladas com sucesso."
 
 # Configura o projeto (gera o projeto e resolve as dependências)

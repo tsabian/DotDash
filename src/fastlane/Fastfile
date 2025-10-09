@@ -29,20 +29,22 @@ platform :ios do
     device = sh("xcrun simctl list devices available | grep -m1 'iPhone' | awk -F '(' '{print $1}'").strip
     UI.message("📱 Using simulator: #{device}")
 
-    output_dir = "build/test_reports"
+    output_dir = File.expand_path("../build/test_reports", __dir__)
 
     FileUtils.mkdir_p(output_dir) 
 
     run_tests(
       scheme: "DotDashTests",
       configuration: "Debug",
-      output_types: "junit,html",
       prelaunch_simulator: true,
       device: device,
-      output_directory: output_dir,
       result_bundle: true,
-      suppress_xcode_output: false,
-      clean: true
+      clean: true,
+      suppress_xcode_output: true,
+      output_types: "junit,html",
+      output_files: "report.junit,report.html",
+      output_directory: output_dir,
+      buildlog_path: output_dir
     )
 
     UI.message("✅ Test results generated in #{output_dir}")

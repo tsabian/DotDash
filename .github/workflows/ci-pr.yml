@@ -21,8 +21,6 @@ jobs:
     runs-on: macos-15
     if: github.event_name == 'pull_request' && github.event.action != 'closed'
     # 🔐 Segredos injetados direto no ambiente
-    env:
-      GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
 
     steps:
       - uses: actions/checkout@v4
@@ -47,16 +45,13 @@ jobs:
           bundle install --jobs 4 --retry 3
 
       # ✅ Recria o GoogleService-Info.plist (Firebase)
-      - name: Create GoogleService-Info.plist (from B64 secret)
-        shell: bash
-        run: |
-          set -eo pipefail
-          : "${GOOGLE_SERVICE_INFO_PLIST:?Faltou GOOGLE_SERVICE_INFO_PLIST}"
-          mkdir -p ./App/Sources/SupportingFiles
-          if ! printf "%s" "$GOOGLE_SERVICE_INFO_PLIST" | base64 -D > ./App/Sources/SupportingFiles/GoogleService-Info.plist 2>/dev/null; then
-            printf "%s" "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode > ./App/Sources/SupportingFiles/GoogleService-Info.plist
-          fi
-          echo "✅ GoogleService-Info.plist restaurado."
+      - name: Restore GoogleService-Info.plist
+        uses: ./.github/actions/restore-gsp
+        with:
+          content: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+          output_path: src/App/Sources/SupportingFiles/GoogleService-Info.plist
+          allow_raw: "false"
+          validate: "true"
 
       # ✅ Gera o projeto Xcode e resolve dependências
       - name: Setup project (make setup)
@@ -66,12 +61,32 @@ jobs:
       - name: Run Fastlane tests
         run: bundle exec fastlane test
 
-    # 📦 Publica os resultados como artefatos
-      - name: Upload test results (JUnit + HTML + XCResult)
+      # 📊 Gerar report de testes
+      - name: 📊 Generate HTML report from .xcresult
+        run: |
+          set -eo pipefail
+          root_dir="build/test_reports"
+          echo "📊 Gerando relatório HTML dos testes..."
+          echo "🔎 Searching for .xcresult files in build/test_reports..."
+          find "$root_dir" -type d -name "*.xcresult" -print0 | 
+          while IFS= read -r -d '' file; do
+              echo "Found .xcresult at $file";
+              if command -v xchtmlreport >/dev/null 2>&1; then
+                  filenamewithoutextension=$(basename "$file" .xcresult)
+                  path="$root_dir/$filenamewithoutextension"
+                  echo "Generating report for $filenamewithoutextension"
+                  mkdir -p "$path"
+                  xchtmlreport "$file" --output "$path"
+                  echo "✅ Relatório HTML gerado em $path"
+              else
+                  echo "❌ xchtmlreport is not installed. Please install it to generate HTML reports."
+              fi
+          done
+
+      # 📦 Publica todos os resultados dentro da pasta src/build/test_reports recursivamente como artefatos
+      - name: 📦 Upload test results (JUnit + HTML + XCResult)
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: |
-            build/test_reports/report.junit
-            build/test_reports/report.html
-            build/test_reports/Test.xcresult
+          path: src/build/test_reports/
+          retention-days: 2
