@@ -5,7 +5,7 @@ root_dir="$script_dir/../build/test_reports"
 
 echo "📊 Gerando relatório HTML dos testes..."
 echo "🔎 Procurando por arquivos .xcresult em build/test_reports..."
-find $root_dir -type d -name "*.xcresult" -print0 | 
+find "$root_dir" -type d -name "*.xcresult" -print0 | 
 while IFS= read -r -d '' file; do
     echo "Found .xcresult at $file";
     if command -v xchtmlreport >/dev/null 2>&1; then
