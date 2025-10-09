@@ -88,10 +88,10 @@ jobs:
               fi
           done
 
-      # 📦 Publica os resultados como artefatos
+      # 📦 Publica todos os resultados dentro da pasta src/build/test_reports recursivamente como artefatos
       - name: 📦 Upload test results (JUnit + HTML + XCResult)
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: |
-            src/build/test_reports/**
+          path: build/test_reports/
+          retention-days: 2
