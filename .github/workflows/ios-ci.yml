@@ -197,3 +197,4 @@ jobs:
       - name: Cleanup
         if: always()
         run: make clean
+        working-directory: src
