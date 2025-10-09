@@ -191,18 +191,6 @@ jobs:
           bundle config set path 'vendor/bundle'
           bundle install --jobs 4 --retry 3
 
-      # ✅ Recria o GoogleService-Info.plist (Firebase)
-      - name: Create GoogleService-Info.plist (from B64 secret)
-        shell: bash
-        run: |
-          set -eo pipefail
-          : "${GOOGLE_SERVICE_INFO_PLIST:?Faltou GOOGLE_SERVICE_INFO_PLIST}"
-          mkdir -p ./App/Sources/SupportingFiles
-          if ! printf "%s" "$GOOGLE_SERVICE_INFO_PLIST" | base64 -D > ./App/Sources/SupportingFiles/GoogleService-Info.plist 2>/dev/null; then
-            printf "%s" "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode > ./App/Sources/SupportingFiles/GoogleService-Info.plist
-          fi
-          echo "✅ GoogleService-Info.plist restaurado."
-
       # 🚀 Faz o deploy (usa a lane Fastlane deploy_testflight)
       - name: Run Fastlane deploy_testflight
         run: bundle exec fastlane deploy
