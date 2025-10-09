@@ -21,8 +21,6 @@ jobs:
     runs-on: macos-15
     if: github.event_name == 'pull_request' && github.event.action != 'closed'
     # 🔐 Segredos injetados direto no ambiente
-    env:
-      GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
 
     steps:
       - uses: actions/checkout@v4
@@ -50,11 +48,10 @@ jobs:
       - name: Restore GoogleService-Info.plist
         uses: ./.github/actions/restore-gsp
         with:
-          content: ${GOOGLE_SERVICE_INFO_PLIST}
-          output_path: ./App/Sources/SupportingFiles/GoogleService-Info.plist
+          content: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+          output_path: src/App/Sources/SupportingFiles/GoogleService-Info.plist
           allow_raw: "false"
           validate: "true"
-
 
       # ✅ Gera o projeto Xcode e resolve dependências
       - name: Setup project (make setup)

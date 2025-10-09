@@ -61,8 +61,8 @@ jobs:
       - name: Restore GoogleService-Info.plist
         uses: ./.github/actions/restore-gsp
         with:
-          content: ${GOOGLE_SERVICE_INFO_PLIST}
-          output_path: ./App/Sources/SupportingFiles/GoogleService-Info.plist
+          content: ${{ env.GOOGLE_SERVICE_INFO_PLIST }}
+          output_path: src/App/Sources/SupportingFiles/GoogleService-Info.plist
           allow_raw: "false"
           validate: "true"
 

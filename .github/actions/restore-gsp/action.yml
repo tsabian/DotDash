@@ -44,7 +44,10 @@ runs:
           if [ "$ALLOW_RAW" = "true" ]; then
             printf '%s' "$CONTENT" > "$OUT"
             echo "ℹ️ Conteúdo não parecia base64 — gravado como cru em $OUT (allow_raw=true)."
-            echo "❌ Falha ao decodificar base64. Dica: gere com 'base64 -i GoogleService-Info.plist | tr -d \"\\n[:space:]\"' para garantir que o resultado seja uma única linha sem espaços."
+            echo "⚠️ A decodificação base64 falhou, mas allow_raw=true permite gravar o conteúdo cru; prosseguindo."
+          else
+            echo "❌ Falha ao decodificar base64 e allow_raw!=true; nenhum arquivo foi gravado em $OUT."
+            echo "Dica: gere com 'base64 -i GoogleService-Info.plist | tr -d \"\\n[:space:]\"' para garantir que o resultado seja uma única linha sem espaços."
             exit 1
           fi
         fi
