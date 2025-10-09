@@ -170,7 +170,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
-          path: build
+          path: |
+            src/build/*.ipa
+            src/build/*.dSYM.zip
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
