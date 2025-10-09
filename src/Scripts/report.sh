@@ -1,5 +1,8 @@
 #!/bin/bash
-root_dir="./build/test_reports"
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+root_dir="$script_dir/../build/test_reports"
+
 echo "📊 Gerando relatório HTML dos testes..."
 echo "🔎 Procurando por arquivos .xcresult em build/test_reports..."
 find $root_dir -type d -name "*.xcresult" -print0 | 
