@@ -100,6 +100,37 @@ platform :ios do
     UI.message("✅ Test results generated in #{output_dir}")
   end
 
+  desc "Runs tests"
+  lane :ui_test do
+    ENV["FASTLANE_DISABLE_INTERACTIVE_PROMPTS"] = "true"
+    ENV["FASTLANE_SKIP_UPDATE_CHECK"] = "true"
+    ENV["CI"] = "true"
+
+    # 🔄 captura automaticamente o primeiro simulador disponível
+    device = sh("xcrun simctl list devices available | grep -m1 'iPhone' | awk -F '(' '{print $1}'").strip
+    UI.message("📱 Using simulator: #{device}")
+
+    output_dir = File.expand_path("../build/test_reports", __dir__)
+
+    FileUtils.mkdir_p(output_dir) 
+
+    run_tests(
+      scheme: "DotDashUITests",
+      configuration: "Debug",
+      prelaunch_simulator: true,
+      device: device,
+      result_bundle: true,
+      clean: true,
+      suppress_xcode_output: true,
+      output_types: "junit,html",
+      output_files: "report.junit,report.html",
+      output_directory: output_dir,
+      buildlog_path: output_dir
+    )
+
+    UI.message("✅ UI Test results generated in #{output_dir}")
+  end
+
   desc "Build without code signing for CI"
   lane :ci_build do
     clear_derived_data
