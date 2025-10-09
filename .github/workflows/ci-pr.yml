@@ -84,7 +84,7 @@ jobs:
                   xchtmlreport "$file" --output "$path"
                   echo "✅ Relatório HTML gerado em $path"
               else
-                  echo "❌ xchtmlreport não está instalado. Por favor, instale-o para gerar relatórios HTML."
+                  echo "❌ xchtmlreport is not installed. Please install it to generate HTML reports."
               fi
           done
 
