@@ -72,7 +72,7 @@ jobs:
           set -eo pipefail
           root_dir="build/test_reports"
           echo "📊 Gerando relatório HTML dos testes..."
-          echo "🔎 Procurando por arquivos .xcresult em build/test_reports..."
+          echo "🔎 Searching for .xcresult files in build/test_reports..."
           find $root_dir -type d -name "*.xcresult" -print0 | 
           while IFS= read -r -d '' file; do
               echo "Found .xcresult at $file";
