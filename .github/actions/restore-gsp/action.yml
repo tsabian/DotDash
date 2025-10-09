@@ -21,13 +21,18 @@ runs:
   steps:
     - id: restore
       shell: bash
+      env:
+        inputsContent: ${{ inputs.content }}
+        inputsOutputPath: ${{ inputs.output_path }}
+        inputsAllowRaw: ${{ inputs.allow_raw }}
+        inputsValidate: ${{ inputs.validate }}
       run: |
         set -eo pipefail
 
-        CONTENT="${{ inputs.content }}"
-        OUT="${{ inputs.output_path }}"
-        ALLOW_RAW=${{ inputs.allow_raw }}
-        VALIDATE=${{ inputs.validate }}
+        CONTENT="${{ env.inputsContent }}"
+        OUT="${{ env.inputsOutputPath }}"
+        ALLOW_RAW="${{ env.inputsAllowRaw }}"
+        VALIDATE="${{ env.inputsValidate }}"
 
         # Pasta destino
         mkdir -p "$(dirname "$OUT")"
