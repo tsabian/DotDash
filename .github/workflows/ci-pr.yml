@@ -137,7 +137,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@6797dcbb9a1889fd411d07e8aba7eded53fb8b48
         with:
           ruby-version: '3.2'
 
@@ -179,7 +179,7 @@ jobs:
         run: |
           set -eo pipefail
           root_dir="build/test_reports"
-          echo "📊 Gerando relatório HTML dos testes..."
+          echo "📊 Generating HTML report from .xcresult files..."
           echo "🔎 Searching for .xcresult files in build/test_reports..."
           find "$root_dir" -type d -name "*.xcresult" -print0 | 
           while IFS= read -r -d '' file; do
@@ -190,7 +190,7 @@ jobs:
                   echo "Generating report for $filenamewithoutextension"
                   mkdir -p "$path"
                   xchtmlreport "$file" --output "$path"
-                  echo "✅ Relatório HTML gerado em $path"
+                  echo "✅ HTML report generated at $path"
               else
                   echo "❌ xchtmlreport is not installed. Please install it to generate HTML reports."
               fi

@@ -12,7 +12,7 @@ while IFS= read -r -d '' file; do
         filenamewithoutextension=$(basename "$file" .xcresult)
         path="$root_dir/$filenamewithoutextension"
         echo "Generating report for $filenamewithoutextension"
-        mkdir -p $path
+        mkdir -p "$path"
         xchtmlreport "$file" --output "$path"
         echo "✅ Relatório HTML gerado em $path"
     else
