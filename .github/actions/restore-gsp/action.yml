@@ -29,10 +29,10 @@ runs:
       run: |
         set -eo pipefail
 
-        CONTENT="${{ env.inputsContent }}"
-        OUT="${{ env.inputsOutputPath }}"
-        ALLOW_RAW="${{ env.inputsAllowRaw }}"
-        VALIDATE="${{ env.inputsValidate }}"
+        CONTENT="$inputsContent"
+        OUT="$inputsOutputPath"
+        ALLOW_RAW="$inputsAllowRaw"
+        VALIDATE="$inputsValidate"
 
         # Pasta destino
         mkdir -p "$(dirname "$OUT")"
