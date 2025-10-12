@@ -1,0 +1,36 @@
+{
+  "configurations" : [
+    {
+      "id" : "878DC162-400E-4637-8FDB-18C3C3633680",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:DotDash.xcodeproj",
+      "identifier" : "91F20BA5C38C485EF15876BA",
+      "name" : "DotDash"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:DotDash.xcodeproj",
+        "identifier" : "984F27D56C6B2FE4AB46BB0B",
+        "name" : "DotDashTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:DotDash.xcodeproj",
+        "identifier" : "DCB58BB8D8FB26FD02738E8E",
+        "name" : "DotDashUITests"
+      }
+    }
+  ],
+  "version" : 1
+}
