@@ -7,7 +7,7 @@ inputs:
   output_path:
     description: Caminho de saída do arquivo plist
     required: false
-    default: ./App/Sources/SupportingFiles/GoogleService-Info.plist
+    default: ./App/DotDash/Sources/SupportingFiles/GoogleService-Info.plist
   allow_raw:
     description: Se true, aceita conteúdo cru (não-base64) como fallback
     required: false
