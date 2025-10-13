@@ -19,9 +19,37 @@
   "testTargets" : [
     {
       "target" : {
-        "containerPath" : "container:DotDash.xcodeproj",
-        "identifier" : "984F27D56C6B2FE4AB46BB0B",
-        "name" : "DotDashTests"
+        "containerPath" : "container:Core",
+        "identifier" : "CoreTests",
+        "name" : "CoreTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:watchOS",
+        "identifier" : "DotDashWatchOSTests",
+        "name" : "DotDashWatchOSTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:iOS",
+        "identifier" : "DotDashIOSTests",
+        "name" : "DotDashIOSTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:watchOS",
+        "identifier" : "DotDashWatchOSUITests",
+        "name" : "DotDashWatchOSUITests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Components",
+        "identifier" : "ComponentsTests",
+        "name" : "ComponentsTests"
       }
     },
     {
@@ -29,6 +57,13 @@
         "containerPath" : "container:DotDash.xcodeproj",
         "identifier" : "DCB58BB8D8FB26FD02738E8E",
         "name" : "DotDashUITests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:DotDash.xcodeproj",
+        "identifier" : "984F27D56C6B2FE4AB46BB0B",
+        "name" : "DotDashTests"
       }
     }
   ],
