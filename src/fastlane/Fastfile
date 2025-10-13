@@ -146,7 +146,7 @@ platform :ios do
     # 5️⃣ Faz o upload de todos os dSYM encontrados
     dsym_files.each do |dsym|
       sh("#{upload_symbols_script}",
-        "-gsp", "../App/Sources/SupportingFiles/GoogleService-Info.plist",
+        "-gsp", "../App/DotDash/Sources/SupportingFiles/GoogleService-Info.plist",
         "-p", "ios",
         dsym)
     end

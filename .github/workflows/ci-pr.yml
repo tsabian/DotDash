@@ -162,7 +162,7 @@ jobs:
         uses: ./.github/actions/restore-gsp
         with:
           content: ${{ env.GOOGLE_SERVICE_INFO_PLIST }}
-          output_path: src/App/Sources/SupportingFiles/GoogleService-Info.plist
+          output_path: src/App/DotDash/Sources/SupportingFiles/GoogleService-Info.plist
           allow_raw: "false"
           validate: "true"
 

@@ -9,11 +9,11 @@ let package = Package(
     .library(
       name: "DotDashWatchOS",
       targets: ["DotDashWatchOS"]
-    ),
+    )
   ],
   dependencies: [
     .package(path: "../Core"),
-    .package(path: "../Components"),
+    .package(path: "../Components")
   ],
   targets: [
     .target(
@@ -22,7 +22,19 @@ let package = Package(
     ),
     .testTarget(
       name: "DotDashWatchOSTests",
-      dependencies: ["DotDashWatchOS"]
+      dependencies: ["DotDashWatchOS"],
+      path: "Tests/WatchOSTests",
+      resources: [
+        .process("Resources")
+      ]
     ),
+    .testTarget(
+      name: "DotDashWatchOSUITests",
+      dependencies: ["DotDashWatchOS"],
+      path: "Tests/WatchOSUITests",
+      resources: [
+        .process("Resources")
+      ]
+    )
   ]
 )

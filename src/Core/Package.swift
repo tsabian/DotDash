@@ -9,7 +9,7 @@ let package = Package(
     .library(
       name: "Core",
       targets: ["Core"]
-    ),
+    )
   ],
   targets: [
     .target(
@@ -17,7 +17,11 @@ let package = Package(
     ),
     .testTarget(
       name: "CoreTests",
-      dependencies: ["Core"]
-    ),
+      dependencies: ["Core"],
+      path: "Tests",
+      resources: [
+        .process("Resources")
+      ]
+    )
   ]
 )

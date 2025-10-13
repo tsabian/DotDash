@@ -3,3 +3,4 @@
 --xcode-indentation enabled
 --enable isEmpty
 --acronyms
+--commas inline
