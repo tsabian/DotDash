@@ -5,6 +5,10 @@ import PackageDescription
 
 let package = Package(
   name: "DotDashWatchOS",
+  platforms: [
+    .iOS(.v15),
+    .watchOS(.v7)
+  ],
   products: [
     .library(
       name: "DotDashWatchOS",
