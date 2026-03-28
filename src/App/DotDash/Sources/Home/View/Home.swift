@@ -86,7 +86,7 @@ struct Home: View {
       }
       NavigationView {
         VStack {
-          Text("sadasd")
+          Text("Área de prática")
         }
         .padding()
         .navigationTitle(Text("Praticar"))
