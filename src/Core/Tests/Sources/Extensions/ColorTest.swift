@@ -25,24 +25,24 @@ struct ColorTest {
   @Test func hexRoundtrip6Digits() {
     let input = "#123456"
     let c = Color(hex: input)
-    #expect(c.hex == "#000000FF")
+    #expect(c.hex == "#123456FF")
   }
 
   @Test func hexRoundtrip3Digits() {
     let input = "#0F8"
     let c = Color(hex: input)
-    #expect(c.hex == "#00FF00FF")
+    #expect(c.hex == "#00FF88FF")
   }
 
   @Test func hexRoundtrip8DigitsWithAlpha() {
     let input = "#11223344"
     let c = Color(hex: input)
-    #expect(c.hex == "#00000000")
+    #expect(c.hex == "#11223344")
   }
 
   @Test func hexWithoutHashHandlesInput() {
     let input = "ABCDEF"
     let c = Color(hex: input)
-    #expect(c.hex == "#000000FF")
+    #expect(c.hex == "#ABCDEFFF")
   }
 }

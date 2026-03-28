@@ -13,24 +13,28 @@ import SwiftUI
 
 extension Color {
   init(hex: String) {
-    let fullOpacity = 255.0
+    let fullOpacity: UInt64 = 255
     let hexString = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
     var hexInt: UInt64 = 0
-    Scanner(string: hexString).scanHexInt64(&hexInt)
+    let scanner = Scanner(string: hexString)
+    guard scanner.scanHexInt64(&hexInt), scanner.isAtEnd else {
+      self.init(.sRGB, red: 0, green: 0, blue: 0, opacity: 1.0)
+      return
+    }
     let red, green, blue, alpha: UInt64
     let hexStringLength = hexString.count
     switch hexStringLength {
     case 3:
-      let factor = 17
-      red = (hexInt >> 8) * UInt64(factor)
-      green = ((hexInt >> 4) & 0xF) * UInt64(factor)
-      blue = (hexInt & 0xF) * UInt64(factor)
-      alpha = UInt64(fullOpacity)
+      let factor: UInt64 = 17
+      red = (hexInt >> 8) * factor
+      green = ((hexInt >> 4) & 0xF) * factor
+      blue = (hexInt & 0xF) * factor
+      alpha = fullOpacity
     case 6:
       red = hexInt >> 16
       green = (hexInt >> 8) & 0xFF
       blue = hexInt & 0xFF
-      alpha = UInt64(fullOpacity)
+      alpha = fullOpacity
     case 8:
       red = hexInt >> 24
       green = (hexInt >> 16) & 0xFF
@@ -40,7 +44,7 @@ extension Color {
       red = 0
       green = 0
       blue = 0
-      alpha = 1
+      alpha = fullOpacity
     }
     self.init(
       .sRGB,
@@ -65,10 +69,26 @@ extension Color {
       return writeHex(red, green, blue, alpha)
     #else
       guard let components = cgColor?.components else { return "#000000FF" }
-      let red = Float(components[0])
-      let green = Float(components[1])
-      let blue = Float(components[2])
-      let alpha = Float(components[3])
+      let red, green, blue, alpha: CGFloat
+      switch components.count {
+      case 2:
+        red = components[0]
+        green = components[0]
+        blue = components[0]
+        alpha = components[1]
+      case 3:
+        red = components[0]
+        green = components[1]
+        blue = components[2]
+        alpha = 1.0
+      case 4...:
+        red = components[0]
+        green = components[1]
+        blue = components[2]
+        alpha = components[3]
+      default:
+        return "#000000FF"
+      }
       return writeHex(red, green, blue, alpha)
     #endif
   }
@@ -78,7 +98,7 @@ extension Color {
                         _ blue: CGFloat,
                         _ alpha: CGFloat) -> String
   {
-    String(format: "#%02X%02X%02X%02X", Int(red) * 255, Int(green) * 255,
-           Int(blue) * 255, Int(alpha) * 255)
+    String(format: "#%02X%02X%02X%02X", Int((red * 255).rounded()), Int((green * 255).rounded()),
+           Int((blue * 255).rounded()), Int((alpha * 255).rounded()))
   }
 }
