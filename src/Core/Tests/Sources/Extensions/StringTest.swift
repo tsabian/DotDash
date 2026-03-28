@@ -9,7 +9,7 @@
 import Testing
 
 struct StringTest {
-  @Test func isValidHexTest() async throws {
+  @Test func isValidHexTest() {
     let validHex = "000000"
     #expect(validHex.isValidHex())
     let invalidHex = "ZZZZZZ"

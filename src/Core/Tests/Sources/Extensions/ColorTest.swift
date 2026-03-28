@@ -10,7 +10,7 @@ import SwiftUI
 import Testing
 
 struct ColorTest {
-  @Test func hexColorTest() async throws {
+  @Test func hexColorTest() {
     let expectedColor = Color.white
     let actualColor = Color(hex: "#FFFFFF")
     #expect(actualColor == expectedColor)

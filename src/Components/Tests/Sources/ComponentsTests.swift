@@ -1,6 +1,5 @@
-import Testing
-
 @testable import Components
+import Testing
 
 final class ComponentsTests {
   @Test
