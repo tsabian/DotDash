@@ -57,9 +57,9 @@ targets:
     type: application
     platform: iOS
     sources:
-        - path: App/DotDash
-          createIntermediateGroups: true
-          exclude:
+      - path: App/DotDash
+        createIntermediateGroups: true
+        exclude:
           - App/DotDash/Sources/SupportingFiles/GoogleService-Info-release.plist
     resources:
       - App/DotDash/Resources

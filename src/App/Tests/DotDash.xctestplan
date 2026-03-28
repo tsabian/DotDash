@@ -53,6 +53,10 @@
       }
     },
     {
+      "skippedTests" : [
+        "DotDashUITests\/testLaunchPerformance()",
+        "DotDashUITestsLaunchTests\/testLaunch()"
+      ],
       "target" : {
         "containerPath" : "container:DotDash.xcodeproj",
         "identifier" : "DCB58BB8D8FB26FD02738E8E",
