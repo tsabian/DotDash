@@ -86,8 +86,6 @@ jobs:
         shell: bash
         run: |
           set -eo pipefail
-          make clean
-          make generate
           swift build --package-path Core --arch arm64
           swift build --package-path Components --arch arm64
           swift build --package-path iOS --arch arm64
