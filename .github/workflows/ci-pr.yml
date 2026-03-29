@@ -122,8 +122,9 @@ jobs:
 
           # Note: The watchOS package declares only iOS/watchOS platforms and cannot be built for the macOS host via `swift build`,
           # so we intentionally skip building it here to avoid CodeQL manual build failures.
-          make clean
-          make setup
+
+          make install_tools_arm64
+          make generate
           bundle exec fastlane ci_build
 
           make install_tools_arm64
