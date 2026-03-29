@@ -5,9 +5,9 @@
 //  Created by Tiago de Oliveira on 21/10/25.
 //
 
-@testable import Core
 import SwiftUI
 import Testing
+@testable import Core
 
 struct ColorTest {
   @Test func hexColorTest() {
