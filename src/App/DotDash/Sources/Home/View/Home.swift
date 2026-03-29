@@ -23,9 +23,9 @@ struct Home: View {
                 .frame(width: 210, height: 210)
             }
           }
-          .frame(maxHeight: .infinity)
           .padding(.horizontal, 20)
           HStack {
+            Text("Frequencia")
             Text("Frequencia")
             Spacer()
           }
