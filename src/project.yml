@@ -140,6 +140,7 @@ schemes:
     run:
       configuration: Debug
     test:
+      gatherCoverageData: true
       testPlans:
         - path: App/Tests/DotDash.xctestplan
           defaultPlan: true

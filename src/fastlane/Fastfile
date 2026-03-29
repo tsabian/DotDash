@@ -30,11 +30,10 @@ platform :ios do
     UI.message("📱 Using simulator: #{device}")
 
     output_dir = File.expand_path("../build/test_reports", __dir__)
+    FileUtils.mkdir_p(output_dir)
 
-    FileUtils.mkdir_p(output_dir) 
-
-    run_tests(
-      scheme: "DotDashTests",
+    scan(
+      scheme: "DotDash",
       configuration: "Debug",
       prelaunch_simulator: true,
       device: device,
@@ -43,8 +42,28 @@ platform :ios do
       suppress_xcode_output: true,
       output_types: "junit,html",
       output_files: "report.junit,report.html",
+      code_coverage: true,
       output_directory: output_dir,
-      buildlog_path: output_dir
+      buildlog_path: output_dir,
+      skip_testing: [
+        "FirebaseCore",
+        "FirebaseCrashlytics",
+        "FirebaseAnalytics"
+      ]
+    )
+
+    UI.message("📊 Generating code coverage report with Slather, please wait...")
+    derived_data = Actions.lane_context[SharedValues::SCAN_DERIVED_DATA_PATH]
+    UI.message("📂 DerivedData: #{derived_data}")
+    
+    slather(
+      proj: "DotDash.xcodeproj",
+      scheme: "DotDash",
+      build_directory: derived_data,
+      html: false,
+      cobertura_xml: false,
+      sonarqube_xml: true,
+      output_directory: output_dir
     )
 
     UI.message("✅ Test results generated in #{output_dir}")
