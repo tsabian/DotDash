@@ -106,6 +106,8 @@ jobs:
       - if: matrix.language == 'swift' && matrix.build-mode == 'manual'
         name: Build code for manual analysis  
         shell: bash
+        working-directory: src
+        name: Build code for manual analysis
         run: |
           set -eo pipefail
           ARCH_FLAG=""
