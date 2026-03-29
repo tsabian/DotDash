@@ -232,6 +232,7 @@ jobs:
           SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }} # Create a project in Sonarcloud.io, go to Project Settings > General Settings > Pull Requests and set the Key with the name SONAR_PROJECT_KEY
           SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }} # Create an organization in Sonarcloud.io, go to Organization Settings > General Settings and set the Key with
         with:
+          projectBaseDir: src
           # Additional arguments for the SonarScanner CLI
           args:
             # Unique keys of your project and organization. You can find them in SonarCloud > Information (bottom-left menu)
@@ -246,4 +247,3 @@ jobs:
             # Adds more detail to both client and server-side analysis logs, activating DEBUG mode for the scanner, and adding client-side environment variables and system properties to the server-side log of analysis report processing.
             #-Dsonar.verbose= # optional, default is false
           # When you need the analysis to take place in a directory other than the one from which it was launched, default is .
-          projectBaseDir: .
