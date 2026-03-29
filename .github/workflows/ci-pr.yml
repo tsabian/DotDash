@@ -97,7 +97,8 @@ jobs:
           swift build --package-path Core $ARCH_FLAG
           swift build --package-path Components $ARCH_FLAG
           swift build --package-path iOS $ARCH_FLAG
-          swift build --package-path watchOS $ARCH_FLAG
+          # Note: The watchOS package declares only iOS/watchOS platforms and cannot be built for the macOS host via `swift build`,
+          # so we intentionally skip building it here to avoid CodeQL manual build failures.
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
