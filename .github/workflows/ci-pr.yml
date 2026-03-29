@@ -82,13 +82,16 @@ jobs:
       # ℹ️ Command-line programs to run using the OS shell.
       # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
       - if: matrix.language == 'swift' && matrix.build-mode == 'manual'
+        name: Build code for manual analysis  
         shell: bash
-        working-directory: src
-        name: Build code for manual analysis
         run: |
+          set -eo pipefail
           make clean
           make generate
-          bundle exec fastlane ci_build
+          swift build --package-path Core --arch arm64
+          swift build --package-path Components --arch arm64
+          swift build --package-path iOS --arch arm64
+          swift build --package-path watchOS --arch arm64
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
