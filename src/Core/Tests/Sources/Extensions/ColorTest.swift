@@ -5,9 +5,9 @@
 //  Created by Tiago de Oliveira on 21/10/25.
 //
 
-@testable import Core
 import SwiftUI
 import Testing
+@testable import Core
 
 struct ColorTest {
   @Test func hexColorTest() {
@@ -17,7 +17,7 @@ struct ColorTest {
   }
 
   @Test func hexNonWhiteTest() {
-    let expected = Color.red
+    let expected = Color(red: 1, green: 0, blue: 0)
     let actual = Color(hex: "#FF0000")
     #expect(actual.hex == expected.hex)
   }

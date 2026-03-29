@@ -17,12 +17,18 @@ extension Color {
     let hexString = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
     var hexInt: UInt64 = 0
     let scanner = Scanner(string: hexString)
+
     guard scanner.scanHexInt64(&hexInt), scanner.isAtEnd else {
       self.init(.sRGB, red: 0, green: 0, blue: 0, opacity: 1.0)
       return
     }
-    let red, green, blue, alpha: UInt64
+
+    var red: UInt64
+    var green: UInt64
+    var blue: UInt64
+    var alpha: UInt64
     let hexStringLength = hexString.count
+
     switch hexStringLength {
     case 3:
       let factor: UInt64 = 17
@@ -59,14 +65,41 @@ extension Color {
    *  Retorna a cor em formato hexadecimal
    */
   var hex: String {
+    var red: CGFloat = 0
+    var green: CGFloat = 0
+    var blue: CGFloat = 0
+    var alpha: CGFloat = 0
     #if canImport(UIKit)
       let uiColor = UIColor(self)
-      var red: CGFloat = 0
-      var green: CGFloat = 0
-      var blue: CGFloat = 0
-      var alpha: CGFloat = 0
-      uiColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-      return writeHex(red, green, blue, alpha)
+      let cg = uiColor.cgColor
+      if let sRGBSpace = CGColorSpace(name: CGColorSpace.sRGB),
+         let converted = cg.converted(to: sRGBSpace, intent: .defaultIntent, options: nil),
+         let comps = converted.components
+      {
+        switch comps.count {
+        case 2:
+          red = comps[0]
+          green = comps[0]
+          blue = comps[0]
+          alpha = comps[1]
+        case 3:
+          red = comps[0]
+          green = comps[1]
+          blue = comps[2]
+          alpha = 1.0
+        default:
+          red = comps[0]
+          green = comps.count > 1 ? comps[1] : 0
+          blue = comps.count > 2 ? comps[2] : 0
+          alpha = comps.count > 3 ? comps[3] : 1.0
+        }
+        return writeHex(red, green, blue, alpha)
+      } else {
+        if uiColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha) {
+          return writeHex(red, green, blue, alpha)
+        }
+        return "#000000FF"
+      }
     #else
       guard let components = cgColor?.components else { return "#000000FF" }
       let red, green, blue, alpha: CGFloat

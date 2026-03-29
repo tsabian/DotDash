@@ -9,14 +9,14 @@ struct HomeTests {
   }
 
   @Test
-  func Home_conformsToView() {
+  func homeConformsToView() {
     _ = assertIsView(Home())
     #expect(true)
   }
 
   @Test
   @MainActor
-  func Home_buildsBodyWithoutCrashing() {
+  func homeBuildsBodyWithoutCrashing() {
     let home = Home()
     _ = home.body
     #expect(true)
@@ -24,7 +24,7 @@ struct HomeTests {
 
   @Test
   @MainActor
-  func Home_bodyContainsTabView() {
+  func homeBodyContainsTabView() {
     let home = Home()
     let body = home.body
     let description = String(describing: body)
