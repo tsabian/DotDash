@@ -106,8 +106,6 @@ jobs:
       - if: matrix.language == 'swift' && matrix.build-mode == 'manual'
         name: Build code for manual analysis  
         shell: bash
-        working-directory: src
-        name: Build code for manual analysis
         run: |
           set -eo pipefail
           ARCH_FLAG=""
@@ -127,7 +125,10 @@ jobs:
 
           make install_tools_arm64
           make generate
-          bundle exec fastlane ci_build
+          swift build --package-path Core --arch arm64
+          swift build --package-path Components --arch arm64
+          swift build --package-path iOS --arch arm64
+          swift build --package-path watchOS --arch arm64
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
