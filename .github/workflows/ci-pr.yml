@@ -215,6 +215,12 @@ jobs:
     needs: [test_on_pr]
 
     steps:
+      - name: 📦 Download test results (JUnit + HTML + XCResult)
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results
+          path: src/build/test_reports/
+
       - uses: actions/checkout@v4
 
       - name: 📦 Download test results (JUnit + HTML + XCResult)
