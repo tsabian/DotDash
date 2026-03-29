@@ -25,11 +25,11 @@ generate:
 	@echo "📄 Gerando o projeto Xcode com xcodegen..."
 	@$(XCODEGEN)
 
-# set permission 644 to googleservice if exists
+# set permission 777 to googleservice if exists
 permissions:
 	@echo "🔒 Ajustando permissões para GoogleService-Info.plist..."
 	@if [ -f App/DotDash/Sources/SupportingFiles/GoogleService-Info.plist ]; then \
-		chmod 644 App/DotDash/Sources/SupportingFiles/GoogleService-Info.plist; \
+		chmod 777 App/DotDash/Sources/SupportingFiles/GoogleService-Info.plist; \
 		echo "🔒 Permissões ajustadas para GoogleService-Info.plist"; \
 	else \
 		echo "⚠️ GoogleService-Info.plist não encontrado. Pulando ajuste de permissões."; \
