@@ -131,7 +131,7 @@ extension Color {
                         _ blue: CGFloat,
                         _ alpha: CGFloat) -> String
   {
-    String(format: "#%02X%02X%02X%02X", Int((red * 255).rounded()), Int((green * 255).rounded()),
-           Int((blue * 255).rounded()), Int((alpha * 255).rounded()))
+    let clamp: (CGFloat) -> Int = { v in min(255, max(0, Int((v * 255).rounded()))) }
+    return String(format: "#%02X%02X%02X%02X", clamp(red), clamp(green), clamp(blue), clamp(alpha))
   }
 }
