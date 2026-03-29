@@ -89,10 +89,15 @@ jobs:
         shell: bash
         run: |
           set -eo pipefail
-          swift build --package-path Core --arch arm64
-          swift build --package-path Components --arch arm64
-          swift build --package-path iOS --arch arm64
-          swift build --package-path watchOS --arch arm64
+          ARCH_FLAG=""
+          ARCH="$(uname -m)"
+          if [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then
+            ARCH_FLAG="--arch arm64"
+          fi
+          swift build --package-path Core $ARCH_FLAG
+          swift build --package-path Components $ARCH_FLAG
+          swift build --package-path iOS $ARCH_FLAG
+          swift build --package-path watchOS $ARCH_FLAG
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
