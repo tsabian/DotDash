@@ -96,6 +96,8 @@ struct Home: View {
           } label: {
             Image(systemName: "plus")
           }
+          .accessibilityLabel("Adicionar prática")
+          .accessibilityHint("Cria uma nova sessão de prática")
         }
       }
       .tabItem {
