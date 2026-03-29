@@ -11,7 +11,7 @@ import SwiftUI
   import UIKit
 #endif
 
-@available(iOS 13.0, macOS 10.5, watchOS 6.0, tvOS 13.0, *)
+@available(iOS 13.0, macOS 11.0, watchOS 6.0, tvOS 13.0, *)
 extension Color {
   init(hex: String) {
     let fullOpacity: UInt64 = 255
