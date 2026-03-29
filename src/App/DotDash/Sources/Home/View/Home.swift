@@ -63,10 +63,13 @@ struct Home: View {
                 // ação 1: microfone
               } label: {
                 Image(systemName: "mic.fill")
+                  .accessibilityHidden(true)
               }
               .tint(Color.gray)
               .frame(width: 42, height: 32)
               .cornerRadius(8)
+              .accessibilityLabel("Microfone")
+              .accessibilityHint("Inicia a captura de áudio para tradução em código Morse")
               Button {
                 // ação 2: configurações
               } label: {
