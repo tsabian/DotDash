@@ -65,10 +65,10 @@ extension Color {
    *  Retorna a cor em formato hexadecimal
    */
   var hex: String {
-    var red: CGFloat = 0
-    var green: CGFloat = 0
-    var blue: CGFloat = 0
-    var alpha: CGFloat = 0
+    var red: CGFloat = .zero
+    var green: CGFloat = .zero
+    var blue: CGFloat = .zero
+    var alpha: CGFloat = .zero
     #if canImport(UIKit)
       let uiColor = UIColor(self)
       let cg = uiColor.cgColor
@@ -102,10 +102,6 @@ extension Color {
       }
     #else
       guard let components = cgColor?.components else { return "#000000FF" }
-      var red: CGFloat = 0
-      var green: CGFloat = 0
-      var blue: CGFloat = 0
-      var alpha: CGFloat = 0
       switch components.count {
       case 2:
         red = components[0]
