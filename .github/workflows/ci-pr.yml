@@ -65,6 +65,25 @@ jobs:
       # - name: Setup runtime (example)
       #   uses: actions/setup-example@v1
 
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@6797dcbb9a1889fd411d07e8aba7eded53fb8b48
+        with:
+          ruby-version: '3.2' 
+
+      - name: Cache Ruby gems
+        uses: actions/cache@v4
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+      
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle config set path 'vendor/bundle'
+          bundle install --jobs 4 --retry 3
+
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -99,6 +118,9 @@ jobs:
           swift build --package-path iOS $ARCH_FLAG
           # Note: The watchOS package declares only iOS/watchOS platforms and cannot be built for the macOS host via `swift build`,
           # so we intentionally skip building it here to avoid CodeQL manual build failures.
+          make clean
+          make setup
+          bundle exec fastlane ci_build
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
