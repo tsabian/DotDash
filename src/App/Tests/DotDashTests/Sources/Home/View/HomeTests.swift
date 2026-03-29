@@ -8,11 +8,6 @@ struct HomeTests {
     value
   }
 
-  @MainActor
-  private func bodyDescription() -> String {
-    String(describing: Home().body)
-  }
-
   @Test
   func homeConformsToView() {
     _ = assertIsView(Home())
