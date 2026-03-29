@@ -74,10 +74,13 @@ struct Home: View {
                 // ação 2: configurações
               } label: {
                 Image(systemName: "gearshape")
+                  .accessibilityHidden(true)
               }
               .tint(Color.gray)
               .frame(width: 42, height: 32)
               .cornerRadius(8)
+              .accessibilityLabel("Configurações")
+              .accessibilityHint("Abre as configurações do aplicativo")
             }
           }
         }
