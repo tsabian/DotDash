@@ -45,4 +45,42 @@ struct ColorTest {
     let c = Color(hex: input)
     #expect(c.hex == "#ABCDEFFF")
   }
+
+  @Test func hexLowercaseInputNormalizesToUppercaseHex() {
+    let input = "#abcdef"
+    let c = Color(hex: input)
+    #expect(c.hex == "#ABCDEFFF")
+  }
+
+  @Test func hexTrimsOuterNonAlphanumericCharacters() {
+    let input = " #123456 "
+    let c = Color(hex: input)
+    #expect(c.hex == "#123456FF")
+  }
+
+  @Test func hexInvalidCharactersFallBackToOpaqueBlack() {
+    let input = "#12G456"
+    let c = Color(hex: input)
+    #expect(c.hex == "#000000FF")
+  }
+
+  @Test func hexEmptyInputFallsBackToOpaqueBlack() {
+    let c = Color(hex: "")
+    #expect(c.hex == "#000000FF")
+  }
+
+  @Test func hexUnsupportedLengthFallsBackToOpaqueBlack() {
+    let c = Color(hex: "#12345")
+    #expect(c.hex == "#000000FF")
+  }
+
+  @Test func hexPropertyIncludesAlphaChannel() {
+    let c = Color(.sRGB, red: 0x12 / 255.0, green: 0x34 / 255.0, blue: 0x56 / 255.0, opacity: 0x78 / 255.0)
+    #expect(c.hex == "#12345678")
+  }
+
+  @Test func hexPropertyRoundsComponentValues() {
+    let c = Color(.sRGB, red: 0.5, green: 0.5, blue: 0.5, opacity: 0.5)
+    #expect(c.hex == "#80808080")
+  }
 }

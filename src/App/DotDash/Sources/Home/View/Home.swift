@@ -26,7 +26,6 @@ struct Home: View {
           .padding(.horizontal, 20)
           HStack {
             Text("Frequência")
-            Text("Frequencia")
             Spacer()
           }
           Slider(value: .constant(50), in: 0 ... 100) {
