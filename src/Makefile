@@ -10,6 +10,12 @@ SWIFTPACKAGE := swift package resolve
 # Target padrão (executado com 'make')
 all: generate permissions open
 
+#install tools if not installed for arm64
+install_tools_arm64:
+	@echo "🔧 Verificando e instalando ferramentas para arquitetura arm64..."
+	@arch -arm64 brew list --versions xcodegen >/dev/null 2>&1 || arch -arm64 brew install xcodegen
+	@echo "✅ Ferramentas para arm64 estão instaladas."
+
 # Instala as ferramentas necessárias (swiftlint, swiftformat, xcodegen)
 install_tools:
 	@echo "🔧 Instalando ferramentas necessárias..."
