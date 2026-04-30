@@ -5,15 +5,18 @@ import PackageDescription
 
 let package = Package(
   name: "DotDashIOS",
+  platforms: [
+    .iOS(.v15)
+  ],
   products: [
     .library(
       name: "DotDashIOS",
       targets: ["DotDashIOS"]
-    ),
+    )
   ],
   dependencies: [
     .package(path: "../Core"),
-    .package(path: "../Components"),
+    .package(path: "../Components")
   ],
   targets: [
     .target(
@@ -22,7 +25,11 @@ let package = Package(
     ),
     .testTarget(
       name: "DotDashIOSTests",
-      dependencies: ["DotDashIOS"]
-    ),
+      dependencies: ["DotDashIOS"],
+      path: "Tests",
+      resources: [
+        .process("Resources")
+      ]
+    )
   ]
 )

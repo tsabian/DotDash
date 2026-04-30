@@ -1,0 +1,7 @@
+coverage_service: sonarqube_xml
+xcodeproj: DotDash.xcodeproj
+scheme: DotDash
+output_directory: "build/test_reports"
+# ignore:
+#   - Pods/*
+#   - MyProjectTests/*
