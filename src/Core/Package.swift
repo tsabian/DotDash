@@ -5,11 +5,15 @@ import PackageDescription
 
 let package = Package(
   name: "Core",
+  platforms: [
+    .iOS(.v15),
+    .watchOS(.v7)
+  ],
   products: [
     .library(
       name: "Core",
       targets: ["Core"]
-    ),
+    )
   ],
   targets: [
     .target(
@@ -17,7 +21,11 @@ let package = Package(
     ),
     .testTarget(
       name: "CoreTests",
-      dependencies: ["Core"]
-    ),
+      dependencies: ["Core"],
+      path: "Tests",
+      resources: [
+        .process("Resources")
+      ]
+    )
   ]
 )

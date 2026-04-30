@@ -15,8 +15,8 @@ settings:
 
 # Config
 configFiles:
-  Debug: App/Sources/Configs/debug.xcconfig
-  Release: App/Sources/Configs/release.xcconfig
+  Debug: App/DotDash/Sources/Configs/debug.xcconfig
+  Release: App/DotDash/Sources/Configs/release.xcconfig
 
 # Packages
 packages:
@@ -57,17 +57,18 @@ targets:
     type: application
     platform: iOS
     sources:
-      - path: App/Sources
+      - path: App/DotDash
+        createIntermediateGroups: true
         exclude:
-          - App/Sources/SupportingFiles/GoogleService-Info-release.plist
+          - App/DotDash/Sources/SupportingFiles/GoogleService-Info-release.plist
     resources:
-      - App/Resources
-      - App/Sources/SupportingFiles/GoogleService-Info.plist
+      - App/DotDash/Resources
+      - App/DotDash/Sources/SupportingFiles/GoogleService-Info.plist
     configFiles:
-      Debug: App/Sources/Configs/dotdash-debug.xcconfig
-      Release: App/Sources/Configs/dotdash-release.xcconfig
+      Debug: App/DotDash/Sources/Configs/dotdash-debug.xcconfig
+      Release: App/DotDash/Sources/Configs/dotdash-release.xcconfig
     info:
-      path: App/Sources/SupportingFiles/Info.plist
+      path: App/DotDash/Sources/SupportingFiles/Info.plist
       properties:
         CFBundleName: $(PRODUCT_NAME)
         CFBundleDisplayName: $(PRODUCT_NAME)
@@ -130,3 +131,22 @@ targets:
       - target: DotDash
     templates:
       - LintAndFormat
+
+schemes:
+  DotDash:
+    build:
+      targets:
+        DotDash: all
+    run:
+      configuration: Debug
+    test:
+      gatherCoverageData: true
+      testPlans:
+        - path: App/Tests/DotDash.xctestplan
+          defaultPlan: true
+    archive:
+      configuration: Release
+    analyze:
+      configuration: Debug
+    profile:
+      configuration: Release
