@@ -16,7 +16,5 @@ public enum MorseTable {
     "\"": ".-..-.", "$": "...-..-", "@": ".--.-.", " ": "/"
   ]
 
-  public static let morseToCharacter: [String: Character] = {
-    Dictionary(uniqueKeysWithValues: characterToMorse.map { ($1, $0) })
-  }()
+  public static let morseToCharacter: [String: Character] = Dictionary(uniqueKeysWithValues: characterToMorse.map { ($1, $0) })
 }

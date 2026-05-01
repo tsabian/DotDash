@@ -27,9 +27,7 @@ struct Home: View {
               Slider(value: $currentWpm, in: 5 ... 40, step: 1)
             }
 
-            Button {
-              // tratado no gesto
-            } label: {
+            Button {} label: {
               Circle()
                 .fill(Color.gray)
                 .frame(width: 120, height: 120)
@@ -57,9 +55,15 @@ struct Home: View {
               }
               .buttonStyle(.bordered)
 
-              Button("Espaço palavra") {
+              Button("Espaço") {
                 morseText += " / "
                 plainText = morseEngine.decode(morseText)
+              }
+              .buttonStyle(.bordered)
+
+              Button("Limpar") {
+                morseText = ""
+                plainText = ""
               }
               .buttonStyle(.bordered)
             }
