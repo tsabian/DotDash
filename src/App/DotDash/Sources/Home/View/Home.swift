@@ -1,133 +1,119 @@
-//
-//  Home.swift
-//  DotDash
-//
-//  Created by Tiago de Oliveira on 13/10/25.
-//
-
+import Core
 import SwiftUI
 
 struct Home: View {
+  @State private var plainText = "SOS"
+  @State private var morseText = "... --- ..."
+  @State private var currentWpm: Double = 20
+  @State private var pressedAt: Date?
+
+  private let morseEngine = MorseEngine()
+
+  var keyerEngine: KeyerEngine {
+    KeyerEngine(wpm: currentWpm)
+  }
+
   var body: some View {
     TabView {
       NavigationView {
         ScrollView {
           VStack(spacing: 16) {
-            ZStack {
+            Text("Etapa 1 e 2 (MVP): tradução + keyer")
+              .font(.headline)
+              .frame(maxWidth: .infinity, alignment: .leading)
+
+            VStack(alignment: .leading, spacing: 8) {
+              Text("WPM: \(Int(currentWpm))")
+              Slider(value: $currentWpm, in: 5 ... 40, step: 1)
+            }
+
+            Button {
+              // tratado no gesto
+            } label: {
               Circle()
                 .fill(Color.gray)
-                .opacity(0.3)
-                .frame(width: 230, height: 230)
-              Circle()
-                .fill(Color.gray)
-                .frame(width: 210, height: 210)
+                .frame(width: 120, height: 120)
+                .overlay(Text("KEY").foregroundColor(.white).bold())
+            }
+            .simultaneousGesture(
+              DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                  if pressedAt == nil { pressedAt = Date() }
+                }
+                .onEnded { _ in
+                  guard let start = pressedAt else { return }
+                  let duration = Date().timeIntervalSince(start)
+                  let symbol = keyerEngine.symbol(forPressDuration: duration)
+                  morseText += String(symbol)
+                  plainText = morseEngine.decode(morseText)
+                  pressedAt = nil
+                }
+            )
+
+            HStack {
+              Button("Espaço letra") {
+                morseText += " "
+                plainText = morseEngine.decode(morseText)
+              }
+              .buttonStyle(.bordered)
+
+              Button("Espaço palavra") {
+                morseText += " / "
+                plainText = morseEngine.decode(morseText)
+              }
+              .buttonStyle(.bordered)
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+              Text("Texto")
+              TextField("Digite texto", text: $plainText)
+                .textFieldStyle(.roundedBorder)
+              Button("Converter para Morse") {
+                morseText = morseEngine.encode(plainText)
+              }
+              .buttonStyle(.borderedProminent)
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+              Text("Morse")
+              TextField("Digite código Morse", text: $morseText)
+                .textFieldStyle(.roundedBorder)
+              Button("Converter para Texto") {
+                plainText = morseEngine.decode(morseText)
+              }
+              .buttonStyle(.bordered)
             }
           }
           .padding(.horizontal, 20)
-          HStack {
-            Text("Frequência")
-            Spacer()
-          }
-          Slider(value: .constant(50), in: 0 ... 100) {
-            Text("50")
-          }
-          .tint(Color.gray)
-          HStack {
-            Text("PAM")
-            Spacer()
-          }
-          Slider(value: .constant(20), in: 0 ... 100) {
-            Text("PAM")
-          }
-          .tint(Color.gray)
-          VStack {
-            Text("Tradução de texto")
-              .frame(maxWidth: .infinity,
-                     maxHeight: 40,
-                     alignment: .init(horizontal: .leading, vertical: .center))
-            Text("-/.-..-..-.--.")
-              .frame(maxWidth: .infinity,
-                     maxHeight: 40,
-                     alignment: .init(horizontal: .leading, vertical: .center))
-          }
-          .padding(8)
-          .background(Color(.systemGray6))
-          .cornerRadius(8)
         }
         .navigationTitle("Código Morse")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-          ToolbarItem(placement: .topBarTrailing) {
-            HStack(spacing: 1) {
-              Button {
-                // ação 1: microfone
-              } label: {
-                Image(systemName: "mic.fill")
-                  .accessibilityHidden(true)
-              }
-              .tint(Color.gray)
-              .frame(width: 42, height: 32)
-              .cornerRadius(8)
-              .accessibilityLabel("Microfone")
-              .accessibilityHint("Inicia a captura de áudio para tradução em código Morse")
-              Button {
-                // ação 2: configurações
-              } label: {
-                Image(systemName: "gearshape")
-                  .accessibilityHidden(true)
-              }
-              .tint(Color.gray)
-              .frame(width: 42, height: 32)
-              .cornerRadius(8)
-              .accessibilityLabel("Configurações")
-              .accessibilityHint("Abre as configurações do aplicativo")
-            }
-          }
-        }
       }
       .tabItem {
         Image(systemName: "book.closed.fill")
         Text("Aprender")
       }
+
       NavigationView {
-        VStack {
-          Text("Área de prática")
-        }
-        .padding()
-        .navigationTitle(Text("Praticar"))
-        .toolbar {
-          Button {
-            // action
-          } label: {
-            Image(systemName: "plus")
-          }
-          .accessibilityLabel("Adicionar prática")
-          .accessibilityHint("Cria uma nova sessão de prática")
-        }
+        Text("Etapa 3: áudio (TX/RX) + lanterna + hápticos")
+          .padding()
+          .navigationTitle(Text("Praticar"))
       }
       .tabItem {
         Image(systemName: "checkmark.circle")
         Text("Praticar")
       }
+
       NavigationView {
-        VStack(spacing: 16) {
-          Text("Configurações")
-            .font(.title2)
-          Text("Conteúdo de exemplo")
-            .foregroundColor(.secondary)
-        }
-        .padding()
-        .navigationTitle("Configurações")
+        Text("Etapa 4: ajustes e persistência")
+          .padding()
+          .navigationTitle("Ajustes")
       }
       .tabItem {
         Image(systemName: "gearshape")
         Text("Ajustes")
       }
     }
-    .padding(EdgeInsets(top: .zero,
-                        leading: 16,
-                        bottom: .zero,
-                        trailing: 16))
+    .padding(.horizontal, 16)
   }
 }
 
