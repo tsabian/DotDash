@@ -83,6 +83,16 @@ struct Home: View {
               }
               .buttonStyle(.bordered)
             }
+
+            VStack {
+              Text("Resultado")
+                .frame(maxWidth: .infinity, alignment: .leading)
+              Text(morseText)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(8)
+            .background(Color(.systemGray6))
+            .cornerRadius(8)
           }
           .padding(.horizontal, 20)
         }
