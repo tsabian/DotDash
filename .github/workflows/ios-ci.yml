@@ -3,9 +3,6 @@ name: iOS Release
 on:
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 concurrency:
   group: release-main
   cancel-in-progress: false
@@ -22,6 +19,8 @@ jobs:
     name: 🧱 Build (release)
     runs-on: macos-15
     if: github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
     
     # 🔐 Segredos injetados direto no ambiente
     env:
@@ -55,7 +54,7 @@ jobs:
         run: |
           gem install bundler
           bundle config set path 'vendor/bundle'
-          bundle install --jobs 4 --retry 3 || bundle install
+          bundle install --jobs 4 --retry 3 --frozen || bundle install --frozen
 
       # ✅ Recria o GoogleService-Info.plist (Firebase)
       - name: Restore GoogleService-Info.plist
@@ -187,7 +186,7 @@ jobs:
         run: |
           gem install bundler
           bundle config set path 'vendor/bundle'
-          bundle install --jobs 4 --retry 3
+          bundle install --jobs 4 --retry 3 --frozen || bundle install --frozen
 
       # 🚀 Faz o deploy (usa a lane Fastlane deploy_testflight)
       - name: Run Fastlane deploy
