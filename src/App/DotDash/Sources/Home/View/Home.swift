@@ -30,9 +30,11 @@ struct Home: View {
 
               Text("Frequência: \(Int(currentFrequency)) Hz")
               Slider(value: $currentFrequency, in: 300 ... 1000, step: 10)
-                .onChange(of: currentFrequency) { _, newValue in
+                .onChange(of: currentFrequency) { newValue in
                   sidetone.frequency = Float(newValue)
                 }
+//                .onChange(of: currentFrequency) { _, _ in
+//                }
             }
 
             Button {

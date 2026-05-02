@@ -3,8 +3,25 @@ import Foundation
 
 final class SidetonePlayer {
   private let engine = AVAudioEngine()
-  private let sourceNode: AVAudioSourceNode
   private let format: AVAudioFormat
+  private lazy var sourceNode: AVAudioSourceNode = { [unowned self] in
+    let sampleRate = format.sampleRate
+    return AVAudioSourceNode { [weak self] _, _, frameCount, audioBufferList -> OSStatus in
+      guard let self else { return noErr }
+      let ablPointer = UnsafeMutableAudioBufferListPointer(audioBufferList)
+      let theta = 2 * Float.pi * frequency / Float(sampleRate)
+      for frame in 0 ..< Int(frameCount) {
+        let sample = isToneOn ? sinf(phase) * volume : 0
+        phase += theta
+        if phase >= 2 * Float.pi { phase -= 2 * Float.pi }
+        for buffer in ablPointer {
+          let channel = buffer.mData?.assumingMemoryBound(to: Float.self)
+          channel?[frame] = sample
+        }
+      }
+      return noErr
+    }
+  }()
 
   private var phase: Float = 0
   private var isToneOn = false
@@ -13,28 +30,9 @@ final class SidetonePlayer {
   var volume: Float = 0.25
 
   init() {
-    let sampleRate = 44_100.0
-    format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
-
-    sourceNode = AVAudioSourceNode { [weak self] _, _, frameCount, audioBufferList -> OSStatus in
-      guard let self else { return noErr }
-
-      let ablPointer = UnsafeMutableAudioBufferListPointer(audioBufferList)
-      let theta = 2 * Float.pi * self.frequency / Float(sampleRate)
-
-      for frame in 0 ..< Int(frameCount) {
-        let sample = self.isToneOn ? sinf(self.phase) * self.volume : 0
-        self.phase += theta
-        if self.phase >= 2 * Float.pi { self.phase -= 2 * Float.pi }
-
-        for buffer in ablPointer {
-          let channel = buffer.mData?.assumingMemoryBound(to: Float.self)
-          channel?[frame] = sample
-        }
-      }
-
-      return noErr
-    }
+    // Derive format from engine's output sample rate to avoid mismatches
+    let outputFormat = engine.outputNode.outputFormat(forBus: 0)
+    format = AVAudioFormat(standardFormatWithSampleRate: outputFormat.sampleRate, channels: 1)!
 
     engine.attach(sourceNode)
     engine.connect(sourceNode, to: engine.mainMixerNode, format: format)
