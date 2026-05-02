@@ -8,7 +8,7 @@ struct HomeTests {
     value
   }
 
-  @Test
+  @MainActor @Test
   func homeConformsToView() {
     _ = assertIsView(Home())
     #expect(true)

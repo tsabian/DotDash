@@ -19,43 +19,43 @@ concurrency:
 
 jobs:
   analyze:
-      name: Analyze (${{ matrix.language }})
-      # Runner size impacts CodeQL analysis time. To learn more, please see:
-      #   - https://gh.io/recommended-hardware-resources-for-running-codeql
-      #   - https://gh.io/supported-runners-and-hardware-resources
-      #   - https://gh.io/using-larger-runners (GitHub.com only)
-      # Consider using larger runners or machines with greater resources for possible analysis time improvements.
-      runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
-      permissions:
-        # required for all workflows
-        security-events: write
+    name: Analyze (${{ matrix.language }})
+    # Runner size impacts CodeQL analysis time. To learn more, please see:
+    #   - https://gh.io/recommended-hardware-resources-for-running-codeql
+    #   - https://gh.io/supported-runners-and-hardware-resources
+    #   - https://gh.io/using-larger-runners (GitHub.com only)
+    # Consider using larger runners or machines with greater resources for possible analysis time improvements.
+    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+    permissions:
+      # required for all workflows
+      security-events: write
 
-        # required to fetch internal or private CodeQL packs
-        packages: read
+      # required to fetch internal or private CodeQL packs
+      packages: read
 
-        # only required for workflows in private repositories
-        actions: read
-        contents: read
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
 
-      strategy:
-        fail-fast: false
-        matrix:
-          include:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
           - language: actions
             build-mode: none
           - language: ruby
             build-mode: none
           - language: swift
             build-mode: manual
-          # CodeQL supports the following values keywords for 'language': 'actions', 'c-cpp', 'csharp', 'go', 'java-kotlin', 'javascript-typescript', 'python', 'ruby', 'rust', 'swift'
-          # Use `c-cpp` to analyze code written in C, C++ or both
-          # Use 'java-kotlin' to analyze code written in Java, Kotlin or both
-          # Use 'javascript-typescript' to analyze code written in JavaScript, TypeScript or both
-          # To learn more about changing the languages that are analyzed or customizing the build mode for your analysis,
-          # see https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning.
-          # If you are analyzing a compiled language, you can modify the 'build-mode' for that language to customize how
-          # your codebase is analyzed, see https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/codeql-code-scanning-for-compiled-languages
-      steps:
+        # CodeQL supports the following values keywords for 'language': 'actions', 'c-cpp', 'csharp', 'go', 'java-kotlin', 'javascript-typescript', 'python', 'ruby', 'rust', 'swift'
+        # Use `c-cpp` to analyze code written in C, C++ or both
+        # Use 'java-kotlin' to analyze code written in Java, Kotlin or both
+        # Use 'javascript-typescript' to analyze code written in JavaScript, TypeScript or both
+        # To learn more about changing the languages that are analyzed or customizing the build mode for your analysis,
+        # see https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning.
+        # If you are analyzing a compiled language, you can modify the 'build-mode' for that language to customize how
+        # your codebase is analyzed, see https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/codeql-code-scanning-for-compiled-languages
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -123,9 +123,20 @@ jobs:
           # Note: The watchOS package declares only iOS/watchOS platforms and cannot be built for the macOS host via `swift build`,
           # so we intentionally skip building it here to avoid CodeQL manual build failures.
 
-          make install_tools_arm64
+          if [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then
+            make install_tools_arm64
+          else
+            make install_tools
+          fi
           make generate
           bundle exec fastlane ci_build
+
+          make install_tools_arm64
+          make generate
+          swift build --package-path Core --arch arm64
+          swift build --package-path Components --arch arm64
+          swift build --package-path iOS --arch arm64
+          swift build --package-path watchOS --arch arm64
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
@@ -223,6 +234,14 @@ jobs:
           name: test-results
           path: src/build/test_reports/
 
+      - uses: actions/checkout@v4
+
+      - name: 📦 Download test results (JUnit + HTML + XCResult)
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results
+          path: src/build/test_reports/
+
       - name: Analyze with SonarCloud
         # You can pin the exact commit or the version.
         # uses: SonarSource/sonarcloud-github-action@v2.2.0
@@ -237,9 +256,9 @@ jobs:
           args:
             # Unique keys of your project and organization. You can find them in SonarCloud > Information (bottom-left menu)
             # mandatory
-            -Dsonar.projectKey="$SONAR_PROJECT_KEY"
-            -Dsonar.organization="$SONAR_ORGANIZATION"
-            -Dsonar.coverageReportPaths=build/test_reports/sonarqube-generic-coverage.xml
+            - -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
+            - -Dsonar.organization=${{ env.SONAR_ORGANIZATION }}
+            - -Dsonar.coverageReportPaths=build/test_reports/sonarqube-generic-coverage.xml
             # Comma-separated paths to directories containing main source files.
             #-Dsonar.sources= # optional, default is project base directory
             # Comma-separated paths to directories containing test source files.

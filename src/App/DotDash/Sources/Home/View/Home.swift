@@ -5,9 +5,11 @@ struct Home: View {
   @State private var plainText = "SOS"
   @State private var morseText = "... --- ..."
   @State private var currentWpm: Double = 20
+  @State private var currentFrequency: Double = 600
   @State private var pressedAt: Date?
 
   private let morseEngine = MorseEngine()
+  private let sidetone = SidetonePlayer()
 
   var keyerEngine: KeyerEngine {
     KeyerEngine(wpm: currentWpm)
@@ -18,13 +20,21 @@ struct Home: View {
       NavigationView {
         ScrollView {
           VStack(spacing: 16) {
-            Text("Etapa 1 e 2 (MVP): tradução + keyer")
+            Text("Etapas 1-3 (MVP): tradução + keyer + áudio TX")
               .font(.headline)
               .frame(maxWidth: .infinity, alignment: .leading)
 
             VStack(alignment: .leading, spacing: 8) {
               Text("WPM: \(Int(currentWpm))")
               Slider(value: $currentWpm, in: 5 ... 40, step: 1)
+
+              Text("Frequência: \(Int(currentFrequency)) Hz")
+              Slider(value: $currentFrequency, in: 300 ... 1000, step: 10)
+                .onChange(of: currentFrequency) { newValue in
+                  sidetone.frequency = Float(newValue)
+                }
+//                .onChange(of: currentFrequency) { _, _ in
+//                }
             }
 
             Button {
@@ -38,7 +48,10 @@ struct Home: View {
             .simultaneousGesture(
               DragGesture(minimumDistance: 0)
                 .onChanged { _ in
-                  if pressedAt == nil { pressedAt = Date() }
+                  if pressedAt == nil {
+                    pressedAt = Date()
+                    sidetone.toneOn()
+                  }
                 }
                 .onEnded { _ in
                   guard let start = pressedAt else { return }
@@ -47,6 +60,7 @@ struct Home: View {
                   morseText += String(symbol)
                   plainText = morseEngine.decode(morseText)
                   pressedAt = nil
+                  sidetone.toneOff()
                 }
             )
 
@@ -60,6 +74,12 @@ struct Home: View {
               Button("Espaço palavra") {
                 morseText += " / "
                 plainText = morseEngine.decode(morseText)
+              }
+              .buttonStyle(.bordered)
+
+              Button("Limpar") {
+                morseText = ""
+                plainText = ""
               }
               .buttonStyle(.bordered)
             }
@@ -104,7 +124,7 @@ struct Home: View {
       }
 
       NavigationView {
-        Text("Etapa 3: áudio (TX/RX) + lanterna + hápticos")
+        Text("Etapa 4: áudio RX + lanterna + hápticos")
           .padding()
           .navigationTitle(Text("Praticar"))
       }
@@ -114,7 +134,7 @@ struct Home: View {
       }
 
       NavigationView {
-        Text("Etapa 4: ajustes e persistência")
+        Text("Etapa 5: ajustes e persistência")
           .padding()
           .navigationTitle("Ajustes")
       }
