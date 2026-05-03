@@ -131,13 +131,6 @@ jobs:
           make generate
           bundle exec fastlane ci_build
 
-          make install_tools_arm64
-          make generate
-          swift build --package-path Core --arch arm64
-          swift build --package-path Components --arch arm64
-          swift build --package-path iOS --arch arm64
-          swift build --package-path watchOS --arch arm64
-
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
@@ -169,7 +162,7 @@ jobs:
         run: |
           gem install bundler
           bundle config set path 'vendor/bundle'
-          bundle install --jobs 4 --retry 3
+          bundle install --jobs 4 --retry 3 --frozen
 
       # ✅ Recria o GoogleService-Info.plist (Firebase)
       - name: Restore GoogleService-Info.plist
