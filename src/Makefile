@@ -10,6 +10,12 @@ SWIFTPACKAGE := swift package resolve
 # Target padrão (executado com 'make')
 all: generate permissions open
 
+#install tools if not installed for arm64
+install_tools_arm64:
+	@echo "🔧 Verificando e instalando ferramentas para arquitetura arm64..."
+	@arch -arm64 brew list --versions xcodegen >/dev/null 2>&1 || arch -arm64 brew install xcodegen
+	@echo "✅ Ferramentas para arm64 estão instaladas."
+
 # Instala as ferramentas necessárias (swiftlint, swiftformat, xcodegen)
 install_tools:
 	@echo "🔧 Instalando ferramentas necessárias..."
@@ -25,11 +31,11 @@ generate:
 	@echo "📄 Gerando o projeto Xcode com xcodegen..."
 	@$(XCODEGEN)
 
-# set permission 777 to googleservice if exists
+# set permission 644 to googleservice if exists
 permissions:
 	@echo "🔒 Ajustando permissões para GoogleService-Info.plist..."
-	@if [ -f App/Sources/SupportingFiles/GoogleService-Info.plist ]; then \
-		chmod 777 App/Sources/SupportingFiles/GoogleService-Info.plist; \
+	@if [ -f App/DotDash/Sources/SupportingFiles/GoogleService-Info.plist ]; then \
+		chmod 644 App/DotDash/Sources/SupportingFiles/GoogleService-Info.plist; \
 		echo "🔒 Permissões ajustadas para GoogleService-Info.plist"; \
 	else \
 		echo "⚠️ GoogleService-Info.plist não encontrado. Pulando ajuste de permissões."; \
