@@ -33,8 +33,6 @@ struct Home: View {
                 .onChange(of: currentFrequency) { newValue in
                   sidetone.frequency = Float(newValue)
                 }
-//                .onChange(of: currentFrequency) { _, _ in
-//                }
             }
 
             Button {

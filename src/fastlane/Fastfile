@@ -96,21 +96,6 @@ platform :ios do
       xcargs: "-allowProvisioningUpdates CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO",
       clean: true
     )
-
-    UI.message("✅ Test results generated in #{output_dir}")
-  end
-
-  desc "Build without code signing for CI"
-  lane :ci_build do
-    clear_derived_data
-
-    xcodebuild(
-      scheme: "DotDash",
-      configuration: "Debug",
-      destination: "generic/platform=iOS",
-      xcargs: "-allowProvisioningUpdates CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO",
-      clean: true
-    )
   end
 
   desc "Build the app for release"

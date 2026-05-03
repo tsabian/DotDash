@@ -131,13 +131,6 @@ jobs:
           make generate
           bundle exec fastlane ci_build
 
-          make install_tools_arm64
-          make generate
-          swift build --package-path Core --arch arm64
-          swift build --package-path Components --arch arm64
-          swift build --package-path iOS --arch arm64
-          swift build --package-path watchOS --arch arm64
-
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
@@ -226,14 +219,6 @@ jobs:
     needs: [test_on_pr]
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: 📦 Download test results (JUnit + HTML + XCResult)
-        uses: actions/download-artifact@v4
-        with:
-          name: test-results
-          path: src/build/test_reports/
-
       - uses: actions/checkout@v4
 
       - name: 📦 Download test results (JUnit + HTML + XCResult)
