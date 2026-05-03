@@ -73,7 +73,7 @@ jobs:
       - name: Cache Ruby gems
         uses: actions/cache@v4
         with:
-          path: vendor/bundle
+          path: src/vendor/bundle
           key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-gems-
@@ -160,7 +160,7 @@ jobs:
       - name: Cache Ruby gems
         uses: actions/cache@v4
         with:
-          path: vendor/bundle
+          path: src/vendor/bundle
           key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-gems-
@@ -234,14 +234,6 @@ jobs:
           name: test-results
           path: src/build/test_reports/
 
-      - uses: actions/checkout@v4
-
-      - name: 📦 Download test results (JUnit + HTML + XCResult)
-        uses: actions/download-artifact@v4
-        with:
-          name: test-results
-          path: src/build/test_reports/
-
       - name: Analyze with SonarCloud
         # You can pin the exact commit or the version.
         # uses: SonarSource/sonarcloud-github-action@v2.2.0
@@ -256,9 +248,9 @@ jobs:
           args:
             # Unique keys of your project and organization. You can find them in SonarCloud > Information (bottom-left menu)
             # mandatory
-            - -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
-            - -Dsonar.organization=${{ env.SONAR_ORGANIZATION }}
-            - -Dsonar.coverageReportPaths=build/test_reports/sonarqube-generic-coverage.xml
+            -Dsonar.projectKey="$SONAR_PROJECT_KEY"
+            -Dsonar.organization="$SONAR_ORGANIZATION"
+            -Dsonar.coverageReportPaths=build/test_reports/sonarqube-generic-coverage.xml
             # Comma-separated paths to directories containing main source files.
             #-Dsonar.sources= # optional, default is project base directory
             # Comma-separated paths to directories containing test source files.
