@@ -54,7 +54,7 @@ jobs:
         run: |
           gem install bundler
           bundle config set path 'vendor/bundle'
-          bundle install --jobs 4 --retry 3 --frozen || bundle install --frozen
+          bundle install --jobs 4 --retry 3
 
       # ✅ Recria o GoogleService-Info.plist (Firebase)
       - name: Restore GoogleService-Info.plist
