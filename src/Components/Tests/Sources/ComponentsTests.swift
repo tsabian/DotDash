@@ -3,7 +3,8 @@ import Testing
 
 final class ComponentsTests {
   @Test
-  func example() {
-    #expect(true)
+  func componentsClassCanBeInstantiated() {
+    let instance = Components()
+    #expect(type(of: instance) == Components.self)
   }
 }
