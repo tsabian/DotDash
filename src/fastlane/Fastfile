@@ -97,7 +97,7 @@ platform :ios do
       clean: true
     )
 
-    UI.message("✅ Test results generated in #{output_dir}")
+    UI.message("✅ build succeeded without code signing (CI mode)")
   end
 
   desc "Build the app for release"
