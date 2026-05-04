@@ -15,13 +15,13 @@ final class DotDashUITests: XCTestCase {
   override func tearDownWithError() throws {}
 
   @MainActor
-  func testExample() throws {
+  func testExample() {
     let application = XCUIApplication()
     application.launch()
   }
 
   @MainActor
-  func testLaunchPerformance() throws {
+  func testLaunchPerformance() {
     measure(metrics: [XCTApplicationLaunchMetric()]) {
       XCUIApplication().launch()
     }

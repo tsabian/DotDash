@@ -17,7 +17,7 @@ final class DotDashUITestsLaunchTests: XCTestCase {
   }
 
   @MainActor
-  func testLaunch() throws {
+  func testLaunch() {
     let app = XCUIApplication()
     app.launch()
     let attachment = XCTAttachment(screenshot: app.screenshot())
