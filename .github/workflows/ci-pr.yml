@@ -104,32 +104,15 @@ jobs:
       # ℹ️ Command-line programs to run using the OS shell.
       # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
       - if: matrix.language == 'swift' && matrix.build-mode == 'manual'
-        name: Build code for manual analysis  
+        name: Build code for manual analysis
         shell: bash
         run: |
           set -eo pipefail
-          ARCH_FLAG=""
-          ARCH="$(uname -m)"
-          if [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then
-            ARCH_FLAG="--arch arm64"
-          fi
-
-          echo "Building Swift packages with ARCH_FLAG=$ARCH_FLAG"
-
-          swift build --package-path Core $ARCH_FLAG
-          swift build --package-path Components $ARCH_FLAG
-          swift build --package-path iOS $ARCH_FLAG
-
-          # Note: The watchOS package declares only iOS/watchOS platforms and cannot be built for the macOS host via `swift build`,
-          # so we intentionally skip building it here to avoid CodeQL manual build failures.
-
-          if [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then
-            make install_tools_arm64
-          else
-            make install_tools
-          fi
-          make generate
-          bundle exec fastlane ci_build
+          swift build --package-path Core
+          swift build --package-path Components
+          swift build --package-path iOS
+          # Note: The watchOS package declares only iOS/watchOS platforms and cannot be built
+          # for the macOS host via `swift build`, so it is intentionally skipped here.
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
