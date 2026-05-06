@@ -227,10 +227,6 @@ jobs:
             -Dsonar.projectKey="$SONAR_PROJECT_KEY"
             -Dsonar.organization="$SONAR_ORGANIZATION"
             -Dsonar.coverageReportPaths=build/test_reports/sonarqube-generic-coverage.xml
-            # Comma-separated paths to directories containing main source files.
-            #-Dsonar.sources= # optional, default is project base directory
-            # Comma-separated paths to directories containing test source files.
-            #-Dsonar.tests= # optional. For more info about Code Coverage, please refer to https://docs.sonarcloud.io/enriching/test-coverage/overview/
-            # Adds more detail to both client and server-side analysis logs, activating DEBUG mode for the scanner, and adding client-side environment variables and system properties to the server-side log of analysis report processing.
-            #-Dsonar.verbose= # optional, default is false
+            -Dsonar.tests=App/Tests
+            -Dsonar.exclusions=App/Tests/**
           # When you need the analysis to take place in a directory other than the one from which it was launched, default is .

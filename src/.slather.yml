@@ -2,6 +2,12 @@ coverage_service: sonarqube_xml
 xcodeproj: DotDash.xcodeproj
 scheme: DotDash
 output_directory: "build/test_reports"
-# ignore:
-#   - Pods/*
-#   - MyProjectTests/*
+ignore:
+  - App/Tests/**
+  - SourcePackages/**
+  - "**/SourcePackages/**"
+  - .build/**
+  - "**/Firebase*/**"
+  - "**/DerivedSources/**"
+  - "**/resource_bundle_accessor.*"
+  - "**/GeneratedAssetSymbols.swift"

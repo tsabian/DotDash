@@ -49,9 +49,7 @@ platform :ios do
       buildlog_path: output_dir,
       derived_data_path: derived_data,
       skip_testing: [
-        "FirebaseCore",
-        "FirebaseCrashlytics",
-        "FirebaseAnalytics"
+        "DotDashUITests"
       ]
     )
 
@@ -68,18 +66,20 @@ platform :ios do
       sonarqube_xml: true,
       output_directory: output_dir,
       ignore: [
-        # SPM dependencies (Firebase incluso)
-        "SourcePackages/**",
-        "**/SourcePackages/**",
-        # Swift build artifacts
-        ".build/**",
-        # Firebase específico (extra segurança)
-        "**/Firebase*/**",
-        # Código gerado pelo Xcode
-        "**/DerivedSources/**",
-        "**/resource_bundle_accessor.*",
-        "**/GeneratedAssetSymbols.swift"
-      ]
+          # Test sources (should not appear in coverage metrics)
+          "App/Tests/**",
+          # SPM dependencies (Firebase incluso)
+          "SourcePackages/**",
+          "**/SourcePackages/**",
+          # Swift build artifacts
+          ".build/**",
+          # Firebase específico (extra segurança)
+          "**/Firebase*/**",
+          # Código gerado pelo Xcode
+          "**/DerivedSources/**",
+          "**/resource_bundle_accessor.*",
+          "**/GeneratedAssetSymbols.swift"
+        ]
     )
 
     UI.message("✅ Test results generated in #{output_dir}")
